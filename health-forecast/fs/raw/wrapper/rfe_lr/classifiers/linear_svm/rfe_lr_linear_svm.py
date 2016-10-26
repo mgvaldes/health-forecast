@@ -50,8 +50,8 @@ def stability(main_path, dataset_type):
         print("Performing gridsearch...")
         print()
 
-        pipe_gridsearch = GridSearchCV(rfe_lr_linear_svm_pipe, param_grid=param_grid, cv=StratifiedKFold(n_splits=5, random_state=seeds[i]),
-                                       n_jobs=12, scoring='f1_weighted')
+        pipe_gridsearch = GridSearchCV(rfe_lr_linear_svm_pipe, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
+                                       cv=StratifiedKFold(n_splits=5, random_state=seeds[i]))
         pipe_gridsearch.fit(X_train, y_train)
 
         print("Best parameters set found on development set:")
@@ -72,7 +72,7 @@ def stability(main_path, dataset_type):
     save_object(feature_ranking, os.getcwd() + '/' + dataset_type + '/feature_ranking.pkl')
 
     features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
-                             dtype=[('names', 'S12'), ('stability', '>i4')])
+                             dtype=[('names', 'S120'), ('stability', '>i4')])
     features_info['names'] = variable_names
     features_info['stability'] = final_ranking
 
@@ -126,8 +126,8 @@ def general_performance(main_path, dataset_type):
     print("Performing gridsearch...")
     print()
 
-    pipe_gridsearch = GridSearchCV(rfe_lr_linear_svm_pipe, param_grid=param_grid, cv=StratifiedKFold(n_splits=5, random_state=123456),
-                                   n_jobs=12, scoring='f1_weighted')
+    pipe_gridsearch = GridSearchCV(rfe_lr_linear_svm_pipe, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
+                                   cv=StratifiedKFold(n_splits=5, random_state=123456))
     pipe_gridsearch.fit(X_train, y_train)
 
     rfe_lr_linear_svm_cv_results = dict()
@@ -149,19 +149,19 @@ def general_performance(main_path, dataset_type):
     # print(pipe_gridsearch.best_estimator_.named_steps['linear_svm'].classes_)
     # print()
 
-    performance_metrics(experiment_results, pipe_gridsearch.best_estimator_, X_train, y_train, X_test, y_test, dataset_type,
-                        variable_names)
+    performance_metrics(experiment_results, pipe_gridsearch.best_estimator_, 'rfe_lr', 'linear_svm', X_train, y_train,
+                        X_test, y_test, dataset_type, variable_names)
 
 
 if __name__ == '__main__':
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/miri-master-thesis/health-forecast/datasets/'
     main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast/datasets/'
-    # dataset_type = 'genomic'
+    dataset_type = 'genomic'
     #
-    # general_performance(dataset_type)
-    # stability(dataset_type)
+    general_performance(main_path, dataset_type)
+    # stability(main_path, dataset_type)
 
     dataset_type = 'genomic_epidemiological'
 
-    # general_performance(dataset_type)
-    stability(dataset_type)
+    general_performance(main_path, dataset_type)
+    # stability(main_path, dataset_type)
