@@ -98,7 +98,7 @@ def general_performance(main_path, dataset_type, sampling):
     variable_names = variable_names[1:]
 
     C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
-    LR_C_OPTIONS = [0.1, 1, 10, 100, 1000]
+    LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
 
     print("Loading experiment data...")
     print()
@@ -162,15 +162,15 @@ def general_performance(main_path, dataset_type, sampling):
 if __name__ == '__main__':
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/miri-master-thesis/health-forecast/datasets/'
     main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
-    sampling = "down_sampling"
+    sampling = "down_sample"
 
-    dataset_type = 'genomic'
-    general_performance(main_path, dataset_type, sampling)
-    stability(main_path, dataset_type, sampling)
+    # dataset_type = 'genomic'
+    # general_performance(main_path, dataset_type, sampling)
+    # stability(main_path, dataset_type, sampling)
 
     dataset_type = 'genomic_epidemiological'
     general_performance(main_path, dataset_type, sampling)
-    stability(main_path, dataset_type, sampling)
+    # stability(main_path, dataset_type, sampling)
 
 
 # import numpy as np
