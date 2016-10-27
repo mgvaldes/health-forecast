@@ -155,7 +155,7 @@ def general_performance(main_path, dataset_type):
 
 if __name__ == '__main__':
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/miri-master-thesis/health-forecast/datasets/'
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast/datasets/'
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
     dataset_type = 'genomic'
     #
     general_performance(main_path, dataset_type)
