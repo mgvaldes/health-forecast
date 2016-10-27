@@ -28,12 +28,11 @@ def load_dict(filename):
         return pickle.load(handle)
 
 
-def performance_metrics(experiment_results, best_estimator, X_train, y_train, X_test, y_test, dataset_type, variable_names):
+def performance_metrics(experiment_results, best_estimator, fs_step_name, classifier_step_name, X_train, y_train, X_test,
+                        y_test, dataset_type, variable_names):
     experiment_results['best_estimator'] = best_estimator
 
-    cv_score = np.mean(cross_val_score(best_estimator, X_train, y_train, n_jobs=12,
-                                       cv=StratifiedKFold(n_splits=5, random_state=789012), scoring='f1_weighted'))
-
+    cv_score = np.mean(cross_val_score(best_estimator, X_train, y_train, n_jobs=12, cv=StratifiedKFold(n_splits=5, random_state=789012), scoring='f1_weighted'))
 
     experiment_results['cv_score'] = cv_score
 
@@ -85,15 +84,30 @@ def performance_metrics(experiment_results, best_estimator, X_train, y_train, X_
     plot_confusion_matrix(linear_svm_confusion_matrix, classes=["Positive", "Negative"],
                           filename=os.getcwd() + '/' + dataset_type + '/confusion_matrix.png')
 
-    linear_svm_precision_recall_fscore_support = precision_recall_fscore_support(y_test, y_pred, pos_label=0)
-    experiment_results['precision_recall_f1'] = linear_svm_precision_recall_fscore_support
+    linear_svm_precision_recall_fscore_support = precision_recall_fscore_support(y_test, y_pred)
+    # experiment_results['class_precision_recall_f1'] = linear_svm_precision_recall_fscore_support
 
     pos_precision = linear_svm_precision_recall_fscore_support[0][0]
+    experiment_results['pos_precision'] = pos_precision
     neg_precision = linear_svm_precision_recall_fscore_support[0][1]
+    experiment_results['neg_precision'] = neg_precision
     pos_recall = linear_svm_precision_recall_fscore_support[1][0]
+    experiment_results['pos_recall'] = pos_recall
     neg_recall = linear_svm_precision_recall_fscore_support[1][1]
+    experiment_results['neg_recall'] = neg_recall
     pos_f1 = linear_svm_precision_recall_fscore_support[2][0]
+    experiment_results['pos_f1'] = pos_f1
     neg_f1 = linear_svm_precision_recall_fscore_support[2][1]
+    experiment_results['neg_f1'] = neg_f1
+
+    linear_svm_precision_recall_fscore_support = precision_recall_fscore_support(y_test, y_pred, average='weighted')
+    # experiment_results['global_precision_recall_f1'] = linear_svm_precision_recall_fscore_support
+    precision = linear_svm_precision_recall_fscore_support[0]
+    experiment_results['precision'] = precision
+    recall = linear_svm_precision_recall_fscore_support[1]
+    experiment_results['recall'] = recall
+    f1 = linear_svm_precision_recall_fscore_support[2]
+    experiment_results['f1'] = f1
 
     print("Positive precision:")
     print()
@@ -125,12 +139,27 @@ def performance_metrics(experiment_results, best_estimator, X_train, y_train, X_
     print(neg_f1)
     print()
 
-    linear_svm_f1 = f1_score(y_test, y_pred, average='weighted', pos_label=0)
-    experiment_results['weighted_F1'] = linear_svm_f1
+    # linear_svm_f1 = f1_score(y_test, y_pred, average='weighted')
+    # experiment_results['weighted_F1'] = linear_svm_f1
+    #
+    # print("WEIGHTED F1:")
+    # print()
+    # print(linear_svm_f1)
+    # print()
 
-    print("WEIGHTED F1:")
+    print("Precision:")
     print()
-    print(linear_svm_f1)
+    print(precision)
+    print()
+
+    print("Recall:")
+    print()
+    print(recall)
+    print()
+
+    print("F1:")
+    print()
+    print(f1)
     print()
 
     fpr, tpr, thresholds = roc_curve(y_test, y_prob[:, 0], pos_label=0)
@@ -142,7 +171,7 @@ def performance_metrics(experiment_results, best_estimator, X_train, y_train, X_
     plot_roc(fpr, tpr, pos_auc, "Positive ROC",
              filename=os.getcwd() + '/' + dataset_type + '/pos_roc.png')
 
-    print("auc pos:")
+    print("Positive AUC:")
     print()
     print(pos_auc)
     print()
@@ -156,7 +185,7 @@ def performance_metrics(experiment_results, best_estimator, X_train, y_train, X_
     plot_roc(fnr, tnr, neg_auc, "Negative ROC",
              filename=os.getcwd() + '/' + dataset_type + '/neg_roc.png')
 
-    print("auc neg:")
+    print("Negative AUC:")
     print()
     print(neg_auc)
     print()
@@ -164,12 +193,12 @@ def performance_metrics(experiment_results, best_estimator, X_train, y_train, X_
     save_object(experiment_results, os.getcwd() + '/' + dataset_type + '/linear_svm_results.pkl')
 
     features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
-                             dtype=[('names', 'S12'), ('linear SVM coefficients', '>i4')])
+                             dtype=[('names', 'S120'), ('linear SVM coefficients', 'f4')])
 
     features_info['names'] = variable_names
 
     coefficients = np.zeros(X_train.shape[1])
-    coefficients[best_estimator.named_steps['rfe_lr'].get_support()] = np.absolute(best_estimator.named_steps['linear_svm'].coef_)
+    coefficients[best_estimator.named_steps[fs_step_name].get_support()] = np.absolute(best_estimator.named_steps[classifier_step_name].coef_)
 
     features_info['linear SVM coefficients'] = coefficients
 

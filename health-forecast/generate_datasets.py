@@ -140,9 +140,10 @@ X = np.zeros((reduced_data_n_rows, (reduced_data_n_cols - 1)))
 X = reduced_data[:, 1:]
 
 y = reduced_data[:, 0]
-#
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0, stratify=y)
-#
+
+X_train, X_test, y_train, y_test, indexes_train, indexes_test = train_test_split(X, y, range(len(y)), test_size=0.2, random_state=0, stratify=y)
+
+
 # train_dataset = np.zeros((X_train.shape[0], reduced_data_n_cols))
 # train_dataset[:, 0] = y_train
 # train_dataset[:, 1:] = X_train
