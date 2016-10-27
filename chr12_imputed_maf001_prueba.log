@@ -1,0 +1,28 @@
+PLINK v1.90b3.38 64-bit (7 Jun 2016)
+Options in effect:
+  --bfile chr12_imputed_maf001
+  --compound-genotypes
+  --out chr12_imputed_maf001_prueba
+  --recode
+
+Hostname: BL-GVALDES
+Working directory: /home/gvaldes/Documentos/master-thesis/health-forecast-project
+Start time: Wed Oct 26 16:22:22 2016
+
+Note: --compound-genotypes flag unnecessary (spaces between alleles in .ped
+and .lgen files are optional if all alleles are single-character).
+Random number seed: 1477491742
+7652 MB RAM detected; reserving 3826 MB for main workspace.
+Allocated 2869 MB successfully, after larger attempt(s) failed.
+423923 variants loaded from .bim file.
+178 people (0 males, 0 females, 178 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to chr12_imputed_maf001_prueba.nosex .
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 178 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+423923 variants and 178 people pass filters and QC.
+Note: No phenotypes present.
+--recode to chr12_imputed_maf001_prueba.ped + chr12_imputed_maf001_prueba.map
+... done.
+
+End time: Wed Oct 26 16:22:24 2016
