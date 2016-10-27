@@ -29,7 +29,7 @@ def load_dict(filename):
 
 
 def performance_metrics(experiment_results, best_estimator, fs_step_name, classifier_step_name, X_train, y_train, X_test,
-                        y_test, dataset_type, variable_names):
+                        y_test, dataset_type, variable_names, sampling):
     experiment_results['best_estimator'] = best_estimator
 
     cv_score = np.mean(cross_val_score(best_estimator, X_train, y_train, n_jobs=12, cv=StratifiedKFold(n_splits=5, random_state=789012), scoring='f1_weighted'))
@@ -82,7 +82,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     print()
 
     plot_confusion_matrix(linear_svm_confusion_matrix, classes=["Positive", "Negative"],
-                          filename=os.getcwd() + '/' + dataset_type + '/confusion_matrix.png')
+                          filename=os.getcwd() + '/' + sampling + '/' + dataset_type + '/confusion_matrix.png')
 
     linear_svm_precision_recall_fscore_support = precision_recall_fscore_support(y_test, y_pred)
     # experiment_results['class_precision_recall_f1'] = linear_svm_precision_recall_fscore_support
@@ -169,7 +169,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     experiment_results['pos_auc'] = pos_auc
 
     plot_roc(fpr, tpr, pos_auc, "Positive ROC",
-             filename=os.getcwd() + '/' + dataset_type + '/pos_roc.png')
+             filename=os.getcwd() + '/' + sampling + '/' + dataset_type + '/pos_roc.png')
 
     print("Positive AUC:")
     print()
@@ -183,14 +183,14 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     experiment_results['neg_auc'] = neg_auc
 
     plot_roc(fnr, tnr, neg_auc, "Negative ROC",
-             filename=os.getcwd() + '/' + dataset_type + '/neg_roc.png')
+             filename=os.getcwd() + '/' + sampling + '/' + dataset_type + '/neg_roc.png')
 
     print("Negative AUC:")
     print()
     print(neg_auc)
     print()
 
-    save_object(experiment_results, os.getcwd() + '/' + dataset_type + '/linear_svm_results.pkl')
+    save_object(experiment_results, os.getcwd() + '/' + sampling + '/' + dataset_type + '/linear_svm_results.pkl')
 
     features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
                              dtype=[('names', 'S120'), ('linear SVM coefficients', 'f4')])
@@ -202,7 +202,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
 
     features_info['linear SVM coefficients'] = coefficients
 
-    with open(os.getcwd() + '/' + dataset_type + '/coefficients_features_info.csv', 'w') as f:
+    with open(os.getcwd() + '/' + sampling + '/' + dataset_type + '/coefficients_features_info.csv', 'w') as f:
         w = csv.writer(f)
         w.writerow(['names', 'linear SVM coefficients'])
         w.writerows(features_info)
