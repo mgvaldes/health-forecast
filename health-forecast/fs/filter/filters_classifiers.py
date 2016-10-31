@@ -55,7 +55,9 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
 
             classifier = RandomForestClassifier(oob_score=True, random_state=seeds[i], n_jobs=-1, bootstrap=True, class_weight="balanced")
         elif classifier_step_name == "knn":
-            NUM_NEIGHBORS_OPTIONS = list(np.arange(5, 115, 15))
+            max_num_neighbors = 60
+
+            NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
 
             param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
 
@@ -147,10 +149,10 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
         classifier = RandomForestClassifier(oob_score=True, random_state=123456, n_jobs=-1, bootstrap=True,
                                             class_weight="balanced")
     elif classifier_step_name == "knn":
-        max_num_neighbors = 115
-        
-        if X_test.shape[0] < max_num_neighbors:
-            max_num_neighbors = X_test.shape[0]
+        max_num_neighbors = 60
+
+        # if X_test.shape[0] < max_num_neighbors:
+        #     max_num_neighbors = X_test.shape[0]
 
         NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
 
