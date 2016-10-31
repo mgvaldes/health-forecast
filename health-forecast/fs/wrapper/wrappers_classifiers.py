@@ -82,14 +82,16 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
 
     final_ranking = np.sum(feature_ranking, axis=1)
 
-    save_object(feature_ranking, os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling + '/' + dataset_type + '/feature_ranking.pkl')
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling + '/' + dataset_type
+
+    save_object(feature_ranking, result_files_path + '/feature_ranking.pkl')
 
     features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
                              dtype=[('names', 'S120'), ('stability', '>i4')])
     features_info['names'] = variable_names
     features_info['stability'] = final_ranking
 
-    with open(os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling + '/' + dataset_type + '/stability_features_info.csv', 'w') as f:
+    with open(result_files_path + '/stability_features_info.csv', 'w') as f:
         w = csv.writer(f)
         w.writerow(['names', 'stability'])
         w.writerows(features_info)
@@ -153,14 +155,14 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
                                    cv=StratifiedKFold(n_splits=5, random_state=123456))
     pipe_gridsearch.fit(X_train, y_train)
 
-    rfe_lr_linear_svm_cv_results = dict()
-    rfe_lr_linear_svm_cv_results['mean_test_score'] = pipe_gridsearch.cv_results_['mean_test_score']
-    rfe_lr_linear_svm_cv_results['std_test_score'] = pipe_gridsearch.cv_results_['std_test_score']
-    rfe_lr_linear_svm_cv_results['mean_train_score'] = pipe_gridsearch.cv_results_['mean_train_score']
-    rfe_lr_linear_svm_cv_results['std_train_score'] = pipe_gridsearch.cv_results_['std_train_score']
-    rfe_lr_linear_svm_cv_results['params'] = pipe_gridsearch.cv_results_['params']
+    cv_results = dict()
+    cv_results['mean_test_score'] = pipe_gridsearch.cv_results_['mean_test_score']
+    cv_results['std_test_score'] = pipe_gridsearch.cv_results_['std_test_score']
+    cv_results['mean_train_score'] = pipe_gridsearch.cv_results_['mean_train_score']
+    cv_results['std_train_score'] = pipe_gridsearch.cv_results_['std_train_score']
+    cv_results['params'] = pipe_gridsearch.cv_results_['params']
 
-    experiment_results['cv_results'] = rfe_lr_linear_svm_cv_results
+    experiment_results['cv_results'] = cv_results
 
     print("Best parameters set found on development set:")
     print()
@@ -176,24 +178,47 @@ if __name__ == '__main__':
     main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
 
     # sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    sampling_types = ["up_sample"]
+    sampling_types = ["smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     fs_step_name = "rfe_lr"
-    classifier_step_name = "rf"
+    classifier_step_name = "linear_svm"
 
-    classifier_dir = os.getcwd() + '/' + classifier_step_name
+    classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
 
     if not os.path.exists(classifier_dir):
         os.makedirs(classifier_dir)
 
     for sampling in sampling_types:
-        sampling_dir = os.getcwd() + '/' + classifier_step_name + '/' + sampling
+        sampling_dir = classifier_dir + '/' + sampling
 
         if not os.path.exists(sampling_dir):
             os.makedirs(sampling_dir)
 
         for dataset_type in dataset_types:
-            dataset_dir = os.getcwd() + '/' + classifier_step_name + '/' + sampling + '/' + dataset_type
+            dataset_dir = sampling_dir + '/' + dataset_type
+
+            if not os.path.exists(dataset_dir):
+                os.makedirs(dataset_dir)
+
+            general_performance(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
+            stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
+
+    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    classifier_step_name = "rf"
+
+    classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
+
+    if not os.path.exists(classifier_dir):
+        os.makedirs(classifier_dir)
+
+    for sampling in sampling_types:
+        sampling_dir = classifier_dir + '/' + sampling
+
+        if not os.path.exists(sampling_dir):
+            os.makedirs(sampling_dir)
+
+        for dataset_type in dataset_types:
+            dataset_dir = sampling_dir + '/' + dataset_type
 
             if not os.path.exists(dataset_dir):
                 os.makedirs(dataset_dir)

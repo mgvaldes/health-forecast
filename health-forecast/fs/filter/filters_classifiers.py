@@ -8,6 +8,7 @@ from utils_functions import save_object, performance_metrics
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
 import math
 
 
@@ -53,6 +54,12 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
             param_grid['rf__n_estimators'] = NUM_TREES_OPTIONS
 
             classifier = RandomForestClassifier(oob_score=True, random_state=seeds[i], n_jobs=-1, bootstrap=True, class_weight="balanced")
+        elif classifier_step_name == "knn":
+            NUM_NEIGHBORS_OPTIONS = list(np.arange(5, 115, 15))
+
+            param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
+
+            classifier = KNeighborsClassifier(n_jobs=-1)
 
         pipe = Pipeline([(fs_step_name, filter), (classifier_step_name, classifier)])
 
@@ -139,6 +146,12 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
 
         classifier = RandomForestClassifier(oob_score=True, random_state=123456, n_jobs=-1, bootstrap=True,
                                             class_weight="balanced")
+    elif classifier_step_name == "knn":
+        NUM_NEIGHBORS_OPTIONS = list(np.arange(5, 115, 15))
+
+        param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
+
+        classifier = KNeighborsClassifier(n_jobs=-1)
 
     pipe = Pipeline([(fs_step_name, filter), (classifier_step_name, classifier)])
 
@@ -149,14 +162,14 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
                                    cv=StratifiedKFold(n_splits=5, random_state=123456))
     pipe_gridsearch.fit(X_train, y_train)
 
-    rfe_lr_linear_svm_cv_results = dict()
-    rfe_lr_linear_svm_cv_results['mean_test_score'] = pipe_gridsearch.cv_results_['mean_test_score']
-    rfe_lr_linear_svm_cv_results['std_test_score'] = pipe_gridsearch.cv_results_['std_test_score']
-    rfe_lr_linear_svm_cv_results['mean_train_score'] = pipe_gridsearch.cv_results_['mean_train_score']
-    rfe_lr_linear_svm_cv_results['std_train_score'] = pipe_gridsearch.cv_results_['std_train_score']
-    rfe_lr_linear_svm_cv_results['params'] = pipe_gridsearch.cv_results_['params']
+    cv_results = dict()
+    cv_results['mean_test_score'] = pipe_gridsearch.cv_results_['mean_test_score']
+    cv_results['std_test_score'] = pipe_gridsearch.cv_results_['std_test_score']
+    cv_results['mean_train_score'] = pipe_gridsearch.cv_results_['mean_train_score']
+    cv_results['std_train_score'] = pipe_gridsearch.cv_results_['std_train_score']
+    cv_results['params'] = pipe_gridsearch.cv_results_['params']
 
-    experiment_results['cv_results'] = rfe_lr_linear_svm_cv_results
+    experiment_results['cv_results'] = cv_results
 
     print("Best parameters set found on development set:")
     print()
@@ -177,11 +190,11 @@ if __name__ == '__main__':
 
     main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
 
-    # sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    sampling_types = ["down_sample", "up_sample", "smote_sample"]
+    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    # sampling_types = ["down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     fs_step_name = "anova"
-    classifier_step_name = "rf"
+    classifier_step_name = "knn"
 
     classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
 
