@@ -81,8 +81,10 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     print(linear_svm_confusion_matrix)
     print()
 
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling + '/' + dataset_type
+
     plot_confusion_matrix(linear_svm_confusion_matrix, classes=["Positive", "Negative"],
-                          filename=os.getcwd() + '/' + sampling + '/' + dataset_type + '/confusion_matrix.png')
+                          filename=result_files_path + '/confusion_matrix.png')
 
     linear_svm_precision_recall_fscore_support = precision_recall_fscore_support(y_test, y_pred)
     # experiment_results['class_precision_recall_f1'] = linear_svm_precision_recall_fscore_support
@@ -168,8 +170,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     experiment_results['tpr'] = tpr
     experiment_results['pos_auc'] = pos_auc
 
-    plot_roc(fpr, tpr, pos_auc, "Positive ROC",
-             filename=os.getcwd() + '/' + sampling + '/' + dataset_type + '/pos_roc.png')
+    plot_roc(fpr, tpr, pos_auc, "Positive ROC", filename=result_files_path + '/pos_roc.png')
 
     print("Positive AUC:")
     print()
@@ -182,27 +183,45 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     experiment_results['tnr'] = tnr
     experiment_results['neg_auc'] = neg_auc
 
-    plot_roc(fnr, tnr, neg_auc, "Negative ROC",
-             filename=os.getcwd() + '/' + sampling + '/' + dataset_type + '/neg_roc.png')
+    plot_roc(fnr, tnr, neg_auc, "Negative ROC", filename=result_files_path + '/neg_roc.png')
 
     print("Negative AUC:")
     print()
     print(neg_auc)
     print()
 
-    save_object(experiment_results, os.getcwd() + '/' + sampling + '/' + dataset_type + '/linear_svm_results.pkl')
+    if classifier_step_name == "linear_svm":
+        save_object(experiment_results, result_files_path + '/linear_svm_results.pkl')
 
-    features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
-                             dtype=[('names', 'S120'), ('linear SVM coefficients', 'f4')])
+        features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
+                                 dtype=[('names', 'S120'), ('linear SVM coefficients', 'f4')])
 
-    features_info['names'] = variable_names
+        features_info['names'] = variable_names
 
-    coefficients = np.zeros(X_train.shape[1])
-    coefficients[best_estimator.named_steps[fs_step_name].get_support()] = np.absolute(best_estimator.named_steps[classifier_step_name].coef_)
+        coefficients = np.zeros(X_train.shape[1])
+        coefficients[best_estimator.named_steps[fs_step_name].get_support()] = np.absolute(best_estimator.named_steps[classifier_step_name].coef_)
 
-    features_info['linear SVM coefficients'] = coefficients
+        features_info['linear SVM coefficients'] = coefficients
 
-    with open(os.getcwd() + '/' + sampling + '/' + dataset_type + '/coefficients_features_info.csv', 'w') as f:
-        w = csv.writer(f)
-        w.writerow(['names', 'linear SVM coefficients'])
-        w.writerows(features_info)
+        with open(result_files_path + '/coefficients_features_info.csv', 'w') as f:
+            w = csv.writer(f)
+            w.writerow(['names', 'linear SVM coefficients'])
+            w.writerows(features_info)
+
+    elif classifier_step_name == "rf":
+        save_object(experiment_results, result_files_path + '/rf_results.pkl')
+
+        features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
+                                 dtype=[('names', 'S120'), ('RF importances', 'f4')])
+
+        features_info['names'] = variable_names
+
+        importances = np.zeros(X_train.shape[1])
+        importances[best_estimator.named_steps[fs_step_name].get_support()] = best_estimator.named_steps[classifier_step_name].feature_importances_
+
+        features_info['RF importances'] = importances
+
+        with open(result_files_path + '/importances_features_info.csv', 'w') as f:
+            w = csv.writer(f)
+            w.writerow(['names', 'RF importances'])
+            w.writerows(features_info)
