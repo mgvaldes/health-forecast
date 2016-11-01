@@ -10,6 +10,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from mlxtend.feature_selection import SequentialFeatureSelector as SFS
 import math
 
 
@@ -43,6 +44,10 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
             lr = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
 
             wrapper = RFE(lr, n_features_to_select=2000, step=0.25)
+        elif fs_step_name == "sbs_lr":
+            lr = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
+
+            wrapper = SFS(lr, k_features=2000, forward=False, floating=False, scoring='f1_weighted', cv=0, n_jobs=-1)
 
         if classifier_step_name == "linear_svm":
             C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
@@ -139,6 +144,10 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
         lr = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
 
         wrapper = RFE(lr, n_features_to_select=2000, step=0.25)
+    elif fs_step_name == "sbs_lr":
+        lr = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
+
+        wrapper = SFS(lr, k_features=2000, forward=False, floating=False, scoring='f1_weighted', cv=0, n_jobs=-1)
 
     if classifier_step_name == "linear_svm":
         C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
@@ -194,11 +203,12 @@ if __name__ == '__main__':
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/miri-master-thesis/health-forecast/datasets/'
     main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
 
-    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    # sampling_types = ["smote_sample"]
-    dataset_types = ["genomic", "genomic_epidemiological"]
-    fs_step_name = "rfe_lr"
-    classifier_step_name = "knn"
+    # sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    sampling_types = ["raw"]
+    # dataset_types = ["genomic", "genomic_epidemiological"]
+    dataset_types = ["genomic"]
+    fs_step_name = "sbs_lr"
+    classifier_step_name = "linear_svm"
 
     classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
 
