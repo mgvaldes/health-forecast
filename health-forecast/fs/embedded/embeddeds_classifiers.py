@@ -201,36 +201,14 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
 
 if __name__ == '__main__':
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/miri-master-thesis/health-forecast/datasets/'
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
+    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/'
 
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     # sampling_types = ["smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     fs_step_name = "rlr"
     classifier_step_name = "knn"
-
-    classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
-
-    if not os.path.exists(classifier_dir):
-        os.makedirs(classifier_dir)
-
-    for sampling in sampling_types:
-        sampling_dir = classifier_dir + '/' + sampling
-
-        if not os.path.exists(sampling_dir):
-            os.makedirs(sampling_dir)
-
-        for dataset_type in dataset_types:
-            dataset_dir = sampling_dir + '/' + dataset_type
-
-            if not os.path.exists(dataset_dir):
-                os.makedirs(dataset_dir)
-
-            general_performance(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
-            stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
-
-    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    classifier_step_name = "rf"
 
     classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
 
