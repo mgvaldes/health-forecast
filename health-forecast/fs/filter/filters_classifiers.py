@@ -59,7 +59,7 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
 
             NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
 
-            param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
+            param_grid[classifier_step_name + '__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
 
             classifier = KNeighborsClassifier(n_jobs=-1)
 
@@ -156,7 +156,7 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
 
         NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
 
-        param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
+        param_grid[fs_step_name + '__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
 
         classifier = KNeighborsClassifier(n_jobs=-1)
 

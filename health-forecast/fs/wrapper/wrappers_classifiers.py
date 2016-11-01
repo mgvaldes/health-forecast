@@ -10,7 +10,6 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from mlxtend.feature_selection import SequentialFeatureSelector as SFS
 import math
 
 
@@ -44,10 +43,6 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
             lr = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
 
             wrapper = RFE(lr, n_features_to_select=2000, step=0.25)
-        elif fs_step_name == "sbs_lr":
-            lr = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
-
-            wrapper = SFS(lr, k_features=2000, forward=False, floating=False, scoring='f1_weighted', cv=0, n_jobs=-1)
 
         if classifier_step_name == "linear_svm":
             C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
@@ -68,7 +63,7 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
 
             NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
 
-            param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
+            param_grid[classifier_step_name + '__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
 
             classifier = KNeighborsClassifier(n_jobs=-1)
 
@@ -144,10 +139,6 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
         lr = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
 
         wrapper = RFE(lr, n_features_to_select=2000, step=0.25)
-    elif fs_step_name == "sbs_lr":
-        lr = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
-
-        wrapper = SFS(lr, k_features=2000, forward=False, floating=False, scoring='f1_weighted', cv=0, n_jobs=-1)
 
     if classifier_step_name == "linear_svm":
         C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
@@ -168,7 +159,7 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
 
         NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
 
-        param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
+        param_grid[fs_step_name + '__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
 
         classifier = KNeighborsClassifier(n_jobs=-1)
 
@@ -207,7 +198,7 @@ if __name__ == '__main__':
     sampling_types = ["raw"]
     # dataset_types = ["genomic", "genomic_epidemiological"]
     dataset_types = ["genomic"]
-    fs_step_name = "sbs_lr"
+    fs_step_name = "relieff"
     classifier_step_name = "linear_svm"
 
     classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
@@ -228,4 +219,4 @@ if __name__ == '__main__':
                 os.makedirs(dataset_dir)
 
             general_performance(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
-            stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
+            # stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
