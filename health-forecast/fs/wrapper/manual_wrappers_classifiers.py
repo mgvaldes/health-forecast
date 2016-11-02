@@ -131,7 +131,7 @@ if __name__ == '__main__':
     dataset_types = ["genomic", "genomic_epidemiological"]
     # dataset_types = ["genomic"]
     fs_step_name = "relieff"
-    classifier_step_name = "linear_svm"
+    classifier_step_name = "knn"
 
     classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
 

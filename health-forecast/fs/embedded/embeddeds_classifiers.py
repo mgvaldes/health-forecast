@@ -39,15 +39,15 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
 
         param_grid = dict()
 
-        if fs_step_name == "rlr":
+        if fs_step_name == "rlr_l1":
             # LR_C_OPTIONS = [0.1, 1, 10, 100, 1000]
             LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
 
             param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
 
-            rlr = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
+            rlr_l1 = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
 
-            embedded = SelectFromModel(rlr)
+            embedded = SelectFromModel(rlr_l1)
 
         if classifier_step_name == "linear_svm":
             C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
@@ -140,14 +140,14 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
 
     param_grid = dict()
 
-    if fs_step_name == "rlr":
+    if fs_step_name == "rlr_l1":
         LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
 
         param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
 
-        rlr = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
+        rlr_l1 = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
 
-        embedded = SelectFromModel(rlr)
+        embedded = SelectFromModel(rlr_l1)
 
     if classifier_step_name == "linear_svm":
         C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
@@ -207,8 +207,8 @@ if __name__ == '__main__':
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     # sampling_types = ["smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
-    fs_step_name = "rlr"
-    classifier_step_name = "knn"
+    fs_step_name = "rlr_l2"
+    classifier_step_name = "linear_svm"
 
     classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
 
