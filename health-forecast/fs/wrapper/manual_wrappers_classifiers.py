@@ -124,14 +124,15 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
 
 
 if __name__ == '__main__':
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
+    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/'
 
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     # sampling_types = ["raw"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     # dataset_types = ["genomic"]
     fs_step_name = "relieff"
-    classifier_step_name = "linear_svm"
+    classifier_step_name = "rf"
 
     classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
 
