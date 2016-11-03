@@ -124,7 +124,8 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
 
 if __name__ == '__main__':
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
+    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/'
 
     sampling_timings = ["sampling_before_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
