@@ -45,9 +45,19 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
 
             param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
 
-            rlr_l1 = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
+            rlr_l1 = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False,
+                                        n_jobs=-1)
 
             embedded = SelectFromModel(rlr_l1)
+        elif fs_step_name == "rlr_l2":
+            LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
+
+            param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
+
+            rlr_l2 = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l2', dual=False,
+                                        n_jobs=-1)
+
+            embedded = SelectFromModel(rlr_l2)
 
         if classifier_step_name == "linear_svm":
             C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
@@ -148,6 +158,14 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
         rlr_l1 = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
 
         embedded = SelectFromModel(rlr_l1)
+    elif fs_step_name == "rlr_l2":
+        LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
+
+        param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
+
+        rlr_l2 = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l2', dual=False, n_jobs=-1)
+
+        embedded = SelectFromModel(rlr_l2)
 
     if classifier_step_name == "linear_svm":
         C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
