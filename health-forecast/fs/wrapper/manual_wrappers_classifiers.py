@@ -11,7 +11,7 @@ from sklearn.metrics import f1_score
 import math
 
 
-def general_performance(main_path, dataset_type, sampling, fs_step_name, classifier_step_name):
+def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
     print("Loading variable names...")
     print()
     with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
@@ -120,17 +120,16 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
     best_estimator_.fit(reduced_X_train, y_train)
 
     manual_performance_metrics(experiment_results, wrapper, best_estimator_, fs_step_name, classifier_step_name, reduced_X_train,
-                        y_train, reduced_X_test, y_test, dataset_type, variable_names, sampling)
+                        y_train, reduced_X_test, y_test, dataset_type, variable_names, sampling, sampling_timing)
 
 
 if __name__ == '__main__':
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
     main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/'
 
+    sampling_timings = ["sampling_before_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    # sampling_types = ["raw"]
     dataset_types = ["genomic", "genomic_epidemiological"]
-    # dataset_types = ["genomic"]
     fs_step_name = "relieff"
     classifier_step_name = "rf"
 
@@ -139,17 +138,24 @@ if __name__ == '__main__':
     if not os.path.exists(classifier_dir):
         os.makedirs(classifier_dir)
 
-    for sampling in sampling_types:
-        sampling_dir = classifier_dir + '/' + sampling
+    for sampling_timing in sampling_timings:
+        sampling_timing_dir = classifier_dir + '/' + sampling_timing
 
-        if not os.path.exists(sampling_dir):
-            os.makedirs(sampling_dir)
+        if not os.path.exists(sampling_timing_dir):
+            os.makedirs(sampling_timing_dir)
 
-        for dataset_type in dataset_types:
-            dataset_dir = sampling_dir + '/' + dataset_type
+        for sampling in sampling_types:
+            sampling_dir = sampling_timing_dir + '/' + sampling
 
-            if not os.path.exists(dataset_dir):
-                os.makedirs(dataset_dir)
+            if not os.path.exists(sampling_dir):
+                os.makedirs(sampling_dir)
 
-            general_performance(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
+            for dataset_type in dataset_types:
+                dataset_dir = sampling_dir + '/' + dataset_type
+
+                if not os.path.exists(dataset_dir):
+                    os.makedirs(dataset_dir)
+
+                general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name,
+                                    classifier_step_name)
             # stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
