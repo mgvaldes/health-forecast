@@ -29,7 +29,7 @@ def load_dict(filename):
 
 
 def performance_metrics(experiment_results, best_estimator, fs_step_name, classifier_step_name, X_train, y_train, X_test,
-                        y_test, dataset_type, variable_names, sampling):
+                        y_test, dataset_type, variable_names, sampling, sampling_timing):
     experiment_results['best_estimator'] = best_estimator
 
     cv_score = np.mean(cross_val_score(best_estimator, X_train, y_train, n_jobs=12, cv=StratifiedKFold(n_splits=5, random_state=789012), scoring='f1_weighted'))
@@ -81,7 +81,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     print(linear_svm_confusion_matrix)
     print()
 
-    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling + '/' + dataset_type
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
 
     plot_confusion_matrix(linear_svm_confusion_matrix, classes=["Positive", "Negative"],
                           filename=result_files_path + '/confusion_matrix.png')
@@ -207,7 +207,6 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
             w = csv.writer(f)
             w.writerow(['names', 'linear SVM coefficients'])
             w.writerows(features_info)
-
     elif classifier_step_name == "rf":
         save_object(experiment_results, result_files_path + '/rf_results.pkl')
 
@@ -225,10 +224,12 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
             w = csv.writer(f)
             w.writerow(['names', 'RF importances'])
             w.writerows(features_info)
+    elif classifier_step_name == "knn":
+        save_object(experiment_results, result_files_path + '/knn_results.pkl')
 
 
 def manual_performance_metrics(experiment_results, feature_selector, best_estimator, fs_step_name, classifier_step_name, X_train, y_train,
-                         X_test, y_test, dataset_type, variable_names, sampling):
+                         X_test, y_test, dataset_type, variable_names, sampling, sampling_timing):
     experiment_results['feature_selector'] = feature_selector
     experiment_results['best_estimator'] = best_estimator
 
@@ -283,7 +284,7 @@ def manual_performance_metrics(experiment_results, feature_selector, best_estima
     print(linear_svm_confusion_matrix)
     print()
 
-    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling + '/' + dataset_type
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
 
     plot_confusion_matrix(linear_svm_confusion_matrix, classes=["Positive", "Negative"],
                           filename=result_files_path + '/confusion_matrix.png')
@@ -409,7 +410,6 @@ def manual_performance_metrics(experiment_results, feature_selector, best_estima
             w = csv.writer(f)
             w.writerow(['names', 'linear SVM coefficients'])
             w.writerows(features_info)
-
     elif classifier_step_name == "rf":
         save_object(experiment_results, result_files_path + '/rf_results.pkl')
 
@@ -427,3 +427,5 @@ def manual_performance_metrics(experiment_results, feature_selector, best_estima
             w = csv.writer(f)
             w.writerow(['names', 'RF importances'])
             w.writerows(features_info)
+    elif classifier_step_name == "knn":
+        save_object(experiment_results, result_files_path + '/knn_results.pkl')

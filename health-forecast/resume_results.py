@@ -26,13 +26,11 @@ def read_results(filename):
 
 
 if __name__ == '__main__':
-    # sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    sampling_types = ["raw"]
+    sampling_timings = ["sampling_before_fs"]
+    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
-    # fs_types = [("filter", "anova"), ("wrapper", "rfe_lr"), ("embedded", "rlr")]
-    fs_types = [("filter", "anova")]
-    # classifier_types = ["linear_svm", "rf", "knn"]
-    classifier_types = ["linear_svm"]
+    fs_types = [("filter", "anova"), ("wrapper", "rfe_lr"), ("embedded", "rlr_l1")]
+    classifier_types = ["linear_svm", "rf", "knn"]
 
     resume_results = np.zeros(0, dtype=('a50, a50, a50, a50, float64, float64, float64, float64, float64, float64, '
                                         'float64, float64, float64, float64, float64, float64'))
@@ -43,15 +41,18 @@ if __name__ == '__main__':
         for classifier_type in classifier_types:
             classifier_dir = fs_dir + classifier_type + '/'
 
-            for sampling_type in sampling_types:
-                sampling_dir = classifier_dir + sampling_type + '/'
+            for sampling_timing in sampling_timings:
+                sampling_timing_dir = classifier_dir + sampling_timing + '/'
 
-                for dataset_type in dataset_types:
-                    dataset_dir = sampling_dir + dataset_type + '/' + classifier_type + '_results.pkl'
+                for sampling_type in sampling_types:
+                    sampling_dir = sampling_timing_dir + sampling_type + '/'
 
-                    resume_results = np.append(resume_results, np.array([(sampling_type, fs_type[0] + ': ' + fs_type[1],
-                                                                          classifier_type, dataset_type) + read_results(dataset_dir)],
-                                                                        dtype=resume_results.dtype))
+                    for dataset_type in dataset_types:
+                        dataset_dir = sampling_dir + dataset_type + '/' + classifier_type + '_results.pkl'
+
+                        resume_results = np.append(resume_results, np.array([(sampling_type, fs_type[0] + ': ' + fs_type[1],
+                                                                              classifier_type, dataset_type) + read_results(dataset_dir)],
+                                                                            dtype=resume_results.dtype))
 
     with open(os.getcwd() + '/resumed_results.csv', 'w') as f:
         w = csv.writer(f)
