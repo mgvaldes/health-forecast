@@ -13,7 +13,7 @@ from sklearn.neighbors import KNeighborsClassifier
 import math
 
 
-def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_name):
+def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
     print("Loading variable names...")
     print()
     with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
@@ -91,7 +91,7 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
 
     final_ranking = np.sum(feature_ranking, axis=1)
 
-    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling + '/' + dataset_type
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
 
     save_object(feature_ranking, result_files_path + '/feature_ranking.pkl')
 
@@ -106,7 +106,7 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
         w.writerows(features_info)
 
 
-def general_performance(main_path, dataset_type, sampling, fs_step_name, classifier_step_name):
+def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
     print("Loading variable names...")
     print()
     with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
@@ -159,7 +159,7 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
 
         NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
 
-        param_grid[fs_step_name + '__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
+        param_grid[classifier_step_name + '__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
 
         classifier = KNeighborsClassifier(n_jobs=-1)
 
@@ -187,36 +187,44 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
     print()
 
     performance_metrics(experiment_results, pipe_gridsearch.best_estimator_, fs_step_name, classifier_step_name, X_train,
-                        y_train, X_test, y_test, dataset_type, variable_names, sampling)
+                        y_train, X_test, y_test, dataset_type, variable_names, sampling, sampling_timing)
 
 
 if __name__ == '__main__':
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/miri-master-thesis/health-forecast/datasets/'
     main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
 
-    # sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    sampling_types = ["raw"]
-    # dataset_types = ["genomic", "genomic_epidemiological"]
-    dataset_types = ["genomic"]
-    fs_step_name = "relieff"
-    classifier_step_name = "linear_svm"
+    sampling_timings = ["sampling_before_fs"]
+    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    # sampling_types = ["raw"]
+    dataset_types = ["genomic", "genomic_epidemiological"]
+    # dataset_types = ["genomic"]
+    fs_step_name = "rfe_lr"
+    classifier_step_name = "knn"
 
     classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
 
     if not os.path.exists(classifier_dir):
         os.makedirs(classifier_dir)
 
-    for sampling in sampling_types:
-        sampling_dir = classifier_dir + '/' + sampling
+    for sampling_timing in sampling_timings:
+        sampling_timing_dir = classifier_dir + '/' + sampling_timing
 
-        if not os.path.exists(sampling_dir):
-            os.makedirs(sampling_dir)
+        if not os.path.exists(sampling_timing_dir):
+            os.makedirs(sampling_timing_dir)
 
-        for dataset_type in dataset_types:
-            dataset_dir = sampling_dir + '/' + dataset_type
+        for sampling in sampling_types:
+            sampling_dir = sampling_timing_dir + '/' + sampling
 
-            if not os.path.exists(dataset_dir):
-                os.makedirs(dataset_dir)
+            if not os.path.exists(sampling_dir):
+                os.makedirs(sampling_dir)
 
-            general_performance(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
-            # stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
+            for dataset_type in dataset_types:
+                dataset_dir = sampling_dir + '/' + dataset_type
+
+                if not os.path.exists(dataset_dir):
+                    os.makedirs(dataset_dir)
+
+                general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name,
+                                    classifier_step_name)
+                # stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
