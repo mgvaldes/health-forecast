@@ -9,10 +9,12 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import FunctionTransformer
 import math
+from sampling import down_sample, up_sample, smote_sample
 
 
-def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_name):
+def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
     print("Loading variable names...")
     print()
     with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
@@ -59,7 +61,7 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
 
             NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
 
-            param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
+            param_grid[classifier_step_name + '__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
 
             classifier = KNeighborsClassifier(n_jobs=-1)
 
@@ -87,7 +89,7 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
 
     final_ranking = np.sum(feature_ranking, axis=1)
 
-    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling + '/' + dataset_type
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
 
     save_object(feature_ranking, result_files_path + '/feature_ranking.pkl')
 
@@ -102,7 +104,7 @@ def stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_n
         w.writerows(features_info)
 
 
-def general_performance(main_path, dataset_type, sampling, fs_step_name, classifier_step_name):
+def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
     print("Loading variable names...")
     print()
     with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
@@ -113,10 +115,17 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
 
     variable_names = variable_names[1:]
 
+    seeds = [123, 456, 789]
+
     print("Loading experiment data...")
     print()
-    raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_train.csv', delimiter=',')
-    raw_train_data = raw_train_data[1:, :]
+
+    if sampling_timing == "sampling_before_fs":
+        raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_train.csv', delimiter=',')
+        raw_train_data = raw_train_data[1:, :]
+    elif sampling_timing == "sampling_after_fs":
+        raw_train_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_train.csv', delimiter=',')
+        raw_train_data = raw_train_data[1:, :]
 
     X_train = raw_train_data[:, 1:]
     y_train = raw_train_data[:, 0]
@@ -156,17 +165,42 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
 
         NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
 
-        param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
+        param_grid[classifier_step_name + '__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
 
         classifier = KNeighborsClassifier(n_jobs=-1)
 
-    pipe = Pipeline([(fs_step_name, filter), (classifier_step_name, classifier)])
+    if sampling_timing == "sampling_before_fs":
+        pipe = Pipeline([(fs_step_name, filter), (classifier_step_name, classifier)])
+    elif sampling_timing == "sampling_after_fs":
+        if sampling == "raw":
+            pipe = Pipeline([(fs_step_name, filter), (classifier_step_name, classifier)])
+        elif sampling == "down_sample":
+            sampling_transformer = FunctionTransformer(func=down_sample,
+                                                       kw_args={'y': y_train, 'seed': seeds[0], 'return_target': False})
+        elif sampling == "up_sample":
+            sampling_transformer = FunctionTransformer(func=up_sample,
+                                                       kw_args={'y': y_train, 'seed': seeds[1], 'return_target': False})
+        elif sampling == "smote_sample":
+            sampling_transformer = FunctionTransformer(func=smote_sample,
+                                                       kw_args={'y': y_train, 'seed': seeds[2], 'return_target': False})
+
+        pipe = Pipeline([(fs_step_name, filter), ('sampling', sampling_transformer), (classifier_step_name, classifier)])
 
     print("Performing gridsearch...")
     print()
 
     pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
                                    cv=StratifiedKFold(n_splits=5, random_state=123456))
+
+    if sampling_timing == "sampling_after_fs":
+        if sampling != "raw":
+            if sampling == "down_sample":
+                y_train = down_sample(X_train, y_train, seeds[0], True)
+            elif sampling == "up_sample":
+                y_train = up_sample(X_train, y_train, seeds[1], True)
+            elif sampling == "smote_sample":
+                y_train = smote_sample(X_train, y_train, seeds[2], True)
+
     pipe_gridsearch.fit(X_train, y_train)
 
     cv_results = dict()
@@ -184,21 +218,14 @@ def general_performance(main_path, dataset_type, sampling, fs_step_name, classif
     print()
 
     performance_metrics(experiment_results, pipe_gridsearch.best_estimator_, fs_step_name, classifier_step_name, X_train,
-                        y_train, X_test, y_test, dataset_type, variable_names, sampling)
+                        y_train, X_test, y_test, dataset_type, variable_names, sampling, sampling_timing)
 
 
 if __name__ == '__main__':
-    # devel/MIRI/master-thesis/
-
-    # if len(sys.argv) > 1:
-    #     main_path = '~/health-forecast-project/health-forecast/datasets/'
-    # else:
-    #     main_path = '~/' + sys.argv[1] + 'health-forecast-project/health-forecast/datasets/'
-
     main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
 
+    sampling_timings = ["sampling_before_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    # sampling_types = ["down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     fs_step_name = "anova"
     classifier_step_name = "knn"
@@ -208,17 +235,23 @@ if __name__ == '__main__':
     if not os.path.exists(classifier_dir):
         os.makedirs(classifier_dir)
 
-    for sampling in sampling_types:
-        sampling_dir = classifier_dir + '/' + sampling
+    for sampling_timing in sampling_timings:
+        sampling_timing_dir = classifier_dir + '/' + sampling_timing
 
-        if not os.path.exists(sampling_dir):
-            os.makedirs(sampling_dir)
+        if not os.path.exists(sampling_timing_dir):
+            os.makedirs(sampling_timing_dir)
 
-        for dataset_type in dataset_types:
-            dataset_dir = sampling_dir + '/' + dataset_type
+        for sampling in sampling_types:
+            sampling_dir = sampling_timing_dir + '/' + sampling
 
-            if not os.path.exists(dataset_dir):
-                os.makedirs(dataset_dir)
+            if not os.path.exists(sampling_dir):
+                os.makedirs(sampling_dir)
 
-            general_performance(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
-            stability(main_path, dataset_type, sampling, fs_step_name, classifier_step_name)
+            for dataset_type in dataset_types:
+                dataset_dir = sampling_dir + '/' + dataset_type
+
+                if not os.path.exists(dataset_dir):
+                    os.makedirs(dataset_dir)
+
+                general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
+                stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
