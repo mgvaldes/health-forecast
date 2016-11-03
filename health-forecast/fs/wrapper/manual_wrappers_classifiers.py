@@ -3,12 +3,63 @@ import csv
 import os
 from sklearn.model_selection import StratifiedKFold
 from sklearn.svm import SVC
-from utils_functions import manual_performance_metrics
+from utils_functions import save_object, manual_performance_metrics
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from ReliefF import ReliefF
 from sklearn.metrics import f1_score
 import math
+
+
+def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
+    print("Loading variable names...")
+    print()
+    with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            variable_names = np.array(list(row))
+            break
+
+    variable_names = variable_names[1:]
+
+    num_experiments = 10
+    feature_ranking = np.zeros((len(variable_names), num_experiments))
+
+    for i in range(0, num_experiments):
+        print("Loading experiment " + str(i) + " data...")
+        print()
+        raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/experiment_' + str(i) + '_train.csv', delimiter=',')
+        raw_train_data = raw_train_data[1:, :]
+
+        X_train = raw_train_data[:, 1:]
+        y_train = raw_train_data[:, 0]
+
+        wrapper = ReliefF(n_neighbors=50, n_features_to_keep=2000)
+        wrapper.fit(X_train, y_train)
+
+        selected_features = np.zeros(X_train.shape[1])
+        selected_features[wrapper.top_features[:2000]] = 1
+
+        feature_ranking[:, i] = selected_features
+
+    print("Calculating final feature ranking")
+    print()
+
+    final_ranking = np.sum(feature_ranking, axis=1)
+
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
+
+    save_object(feature_ranking, result_files_path + '/feature_ranking.pkl')
+
+    features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
+                             dtype=[('names', 'S120'), ('stability', '>i4')])
+    features_info['names'] = variable_names
+    features_info['stability'] = final_ranking
+
+    with open(result_files_path + '/stability_features_info.csv', 'w') as f:
+        w = csv.writer(f)
+        w.writerow(['names', 'stability'])
+        w.writerows(features_info)
 
 
 def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
@@ -124,12 +175,17 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
 
 if __name__ == '__main__':
-    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
-    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/'
+    disease = "lung_cancer"
+    chromosome = "chr12"
+
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
 
     sampling_timings = ["sampling_before_fs"]
-    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    dataset_types = ["genomic", "genomic_epidemiological"]
+    # sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    sampling_types = ["smote_sample"]
+    # dataset_types = ["genomic", "genomic_epidemiological"]
+    dataset_types = ["genomic_epidemiological"]
     fs_step_name = "relieff"
     classifier_step_name = "rf"
 

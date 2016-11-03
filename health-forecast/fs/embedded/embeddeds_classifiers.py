@@ -40,7 +40,6 @@ def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, 
         param_grid = dict()
 
         if fs_step_name == "rlr_l1":
-            # LR_C_OPTIONS = [0.1, 1, 10, 100, 1000]
             LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
 
             param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
@@ -49,35 +48,10 @@ def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, 
 
             embedded = SelectFromModel(rlr_l1)
 
-        if classifier_step_name == "linear_svm":
-            C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
-
-            param_grid[classifier_step_name + '__C'] = C_OPTIONS
-
-            classifier = SVC(kernel='linear', random_state=seeds[i], probability=True, class_weight='balanced')
-        elif classifier_step_name == "rf":
-            powers = list(np.arange(1, 3.2, 0.2))
-            NUM_TREES_OPTIONS = list(map(math.floor, np.multiply(3, list(map(math.pow, [10] * len(powers), powers)))))
-
-            param_grid[classifier_step_name + '__n_estimators'] = NUM_TREES_OPTIONS
-
-            classifier = RandomForestClassifier(oob_score=True, random_state=seeds[i], n_jobs=-1, bootstrap=True,
-                                                class_weight="balanced")
-        elif classifier_step_name == "knn":
-            max_num_neighbors = 60
-
-            NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
-
-            param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
-
-            classifier = KNeighborsClassifier(n_jobs=-1)
-
-        pipe = Pipeline([(fs_step_name, embedded), (classifier_step_name, classifier)])
-
         print("Performing gridsearch...")
         print()
 
-        pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
+        pipe_gridsearch = GridSearchCV(embedded, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
                                        cv=StratifiedKFold(n_splits=5, random_state=seeds[i]))
         pipe_gridsearch.fit(X_train, y_train)
 
@@ -87,7 +61,7 @@ def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, 
         print()
 
         selected_features = np.zeros(X_train.shape[1])
-        selected_features[pipe_gridsearch.best_estimator_.named_steps[fs_step_name].get_support()] = 1
+        selected_features[pipe_gridsearch.best_estimator_.get_support()] = 1
 
         feature_ranking[:, i] = selected_features
 
@@ -109,6 +83,103 @@ def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, 
         w = csv.writer(f)
         w.writerow(['names', 'stability'])
         w.writerows(features_info)
+
+# def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
+#     print("Loading variable names...")
+#     print()
+#     with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
+#         reader = csv.reader(csvfile, delimiter=',')
+#         for row in reader:
+#             variable_names = np.array(list(row))
+#             break
+#
+#     variable_names = variable_names[1:]
+#
+#     num_experiments = 10
+#     seeds = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+#     feature_ranking = np.zeros((len(variable_names), num_experiments))
+#
+#     for i in range(0, num_experiments):
+#         print("Loading experiment " + str(i) + " data...")
+#         print()
+#         raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/experiment_' + str(i) + '_train.csv', delimiter=',')
+#         raw_train_data = raw_train_data[1:, :]
+#
+#         X_train = raw_train_data[:, 1:]
+#         y_train = raw_train_data[:, 0]
+#
+#         param_grid = dict()
+#
+#         if fs_step_name == "rlr_l1":
+#             # LR_C_OPTIONS = [0.1, 1, 10, 100, 1000]
+#             LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
+#
+#             param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
+#
+#             rlr_l1 = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
+#
+#             embedded = SelectFromModel(rlr_l1)
+#
+#         if classifier_step_name == "linear_svm":
+#             C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+#
+#             param_grid[classifier_step_name + '__C'] = C_OPTIONS
+#
+#             classifier = SVC(kernel='linear', random_state=seeds[i], probability=True, class_weight='balanced')
+#         elif classifier_step_name == "rf":
+#             powers = list(np.arange(1, 3.2, 0.2))
+#             NUM_TREES_OPTIONS = list(map(math.floor, np.multiply(3, list(map(math.pow, [10] * len(powers), powers)))))
+#
+#             param_grid[classifier_step_name + '__n_estimators'] = NUM_TREES_OPTIONS
+#
+#             classifier = RandomForestClassifier(oob_score=True, random_state=seeds[i], n_jobs=-1, bootstrap=True,
+#                                                 class_weight="balanced")
+#         elif classifier_step_name == "knn":
+#             max_num_neighbors = 60
+#
+#             NUM_NEIGHBORS_OPTIONS = list(np.arange(5, max_num_neighbors, 15))
+#
+#             param_grid['knn__n_neighbors'] = NUM_NEIGHBORS_OPTIONS
+#
+#             classifier = KNeighborsClassifier(n_jobs=-1)
+#
+#         pipe = Pipeline([(fs_step_name, embedded), (classifier_step_name, classifier)])
+#
+#         print("Performing gridsearch...")
+#         print()
+#
+#         pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
+#                                        cv=StratifiedKFold(n_splits=5, random_state=seeds[i]))
+#         pipe_gridsearch.fit(X_train, y_train)
+#
+#         print("Best parameters set found on development set:")
+#         print()
+#         print(pipe_gridsearch.best_params_)
+#         print()
+#
+#         selected_features = np.zeros(X_train.shape[1])
+#         selected_features[pipe_gridsearch.best_estimator_.named_steps[fs_step_name].get_support()] = 1
+#
+#         feature_ranking[:, i] = selected_features
+#
+#     print("Calculating final feature ranking")
+#     print()
+#
+#     final_ranking = np.sum(feature_ranking, axis=1)
+#
+#     result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
+#
+#     save_object(feature_ranking, result_files_path + '/feature_ranking.pkl')
+#
+#     features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
+#                              dtype=[('names', 'S120'), ('stability', '>i4')])
+#     features_info['names'] = variable_names
+#     features_info['stability'] = final_ranking
+#
+#     with open(result_files_path + '/stability_features_info.csv', 'w') as f:
+#         w = csv.writer(f)
+#         w.writerow(['names', 'stability'])
+#         w.writerows(features_info)
 
 
 def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
@@ -200,9 +271,11 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
 
 if __name__ == '__main__':
-    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/miri-master-thesis/health-forecast/datasets/'
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
-    # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/'
+    disease = "lung_cancer"
+    chromosome = "chr12"
+
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
 
     sampling_timings = ["sampling_before_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
