@@ -5,57 +5,58 @@ import csv
 import os
 
 
-def down_sample(X, y, seed, return_target):
-    rus = RandomUnderSampler(random_state=seed)
-    X_res, y_res = rus.fit_sample(X, y)
-
-    if not return_target:
-        return X_res
-
-    return y_res
-
-
-def up_sample(X, y, seed, return_target):
-    ros = RandomOverSampler(random_state=seed)
-    X_res, y_res = ros.fit_sample(X, y)
-
-    if not return_target:
-        return X_res
-
-    return y_res
-
-
-def smote_sample(X, y, seed, return_target):
-    smote = SMOTE(random_state=seed)
-    X_res, y_res = smote.fit_sample(X, y)
-
-    if not return_target:
-        return X_res
-
-    return y_res
-
-
-# def down_sample(X, y, seed):
+# def down_sample(X, y, seed, return_target):
 #     rus = RandomUnderSampler(random_state=seed)
 #     X_res, y_res = rus.fit_sample(X, y)
 #
-#     return X_res, y_res
+#     if not return_target:
+#         return X_res
+#
+#     return y_res
 #
 #
-# def up_sample(X, y, seed):
+# def up_sample(X, y, seed, return_target):
 #     ros = RandomOverSampler(random_state=seed)
 #     X_res, y_res = ros.fit_sample(X, y)
 #
-#     return X_res, y_res
+#     if not return_target:
+#         return X_res
+#
+#     return y_res
 #
 #
-# def smote_sample(X, y, seed):
+# def smote_sample(X, y, seed, return_target):
 #     smote = SMOTE(random_state=seed)
 #     X_res, y_res = smote.fit_sample(X, y)
 #
-#     return X_res, y_res
+#     if not return_target:
+#         return X_res
 #
-#
+#     return y_res
+
+
+def down_sample(X, y, seed):
+    rus = RandomUnderSampler(random_state=seed)
+    X_res, y_res = rus.fit_sample(X, y)
+    # y_res = np.reshape(y_res, (y_res.shape[0], 1))
+
+    return X_res, y_res
+
+
+def up_sample(X, y, seed):
+    ros = RandomOverSampler(random_state=seed)
+    X_res, y_res = ros.fit_sample(X, y)
+
+    return X_res, y_res
+
+
+def smote_sample(X, y, seed):
+    smote = SMOTE(random_state=seed)
+    X_res, y_res = smote.fit_sample(X, y)
+
+    return X_res, y_res
+
+
 # def sample_single(variable_names, main_path, dataset_type, seeds, filename):
 #     print("Loading " + dataset_type + " raw data...")
 #     print()

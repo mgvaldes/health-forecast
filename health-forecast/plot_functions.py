@@ -43,6 +43,7 @@ def plot_roc(false_rate, true_rate, auc, title, filename, save=True):
 
 
 def plot_rf_oob_error(xs, ys, filename, save=True):
+    plt.figure()
     plt.plot(xs, ys, color='navy')
     min_index = ys.index(min(ys))
     plt.axvline(x=xs[min_index], color='red')
@@ -52,3 +53,15 @@ def plot_rf_oob_error(xs, ys, filename, save=True):
         plt.savefig(filename)
     else:
         plt.show()
+
+
+def plot_metrics_vs_data(cv_scores, test_scores):
+    plt.figure()
+    plt.plot(np.arange(0.1, 1.1, 0.1), cv_scores, color='red', label="CV F1 Score")
+    plt.plot(np.arange(0.1, 1.1, 0.1), test_scores, color='blue', label="Test F1 Score")
+    plt.xlabel('% of train data')
+    plt.ylabel('Scores')
+    plt.title('Performance vs. % of data')
+    plt.axis('tight')
+    plt.legend(loc="upper right")
+    plt.show()
