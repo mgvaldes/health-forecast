@@ -183,14 +183,17 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
         classifier = KNeighborsClassifier(n_jobs=-1)
 
     if sampling_timing == "sampling_before_fs":
-        if sampling == "down_sample":
-            pipe = Pipeline([(sampling, RandomUnderSampler(random_state=sampling_seeds[0]))])
-        elif sampling == "up_sample":
-            pipe = Pipeline([(sampling, RandomOverSampler(random_state=sampling_seeds[1]))])
-        elif sampling == "smote_sample":
-            pipe = Pipeline([(sampling, SMOTE(n_jobs=-1, random_state=sampling_seeds[2]))])
+        if sampling == "raw":
+            pipe = Pipeline([(fs_step_name, filter)])
+        else:
+            if sampling == "down_sample":
+                pipe = Pipeline([(sampling, RandomUnderSampler(random_state=sampling_seeds[0]))])
+            elif sampling == "up_sample":
+                pipe = Pipeline([(sampling, RandomOverSampler(random_state=sampling_seeds[1]))])
+            elif sampling == "smote_sample":
+                pipe = Pipeline([(sampling, SMOTE(n_jobs=-1, random_state=sampling_seeds[2]))])
 
-        pipe.steps.append((fs_step_name, filter))
+            pipe.steps.append((fs_step_name, filter))
     elif sampling_timing == "sampling_after_fs":
         pipe = Pipeline([(fs_step_name, filter)])
 
