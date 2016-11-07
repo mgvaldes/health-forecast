@@ -306,7 +306,7 @@ if __name__ == '__main__':
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     fs_step_names = ["rfe_lr"]
-    classifier_step_names = ["linear_svm"]
+    classifier_step_names = ["rf", "knn"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name
