@@ -191,7 +191,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     print()
 
     if classifier_step_name == "linear_svm":
-        save_object(experiment_results, result_files_path + '/linear_svm_results.pkl')
+        save_object(experiment_results, result_files_path + '/' + classifier_step_name + '_results.pkl')
 
         features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
                                  dtype=[('names', 'S120'), ('linear SVM coefficients', 'f4')])
@@ -208,7 +208,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
             w.writerow(['names', 'linear SVM coefficients'])
             w.writerows(features_info)
     elif classifier_step_name == "rf":
-        save_object(experiment_results, result_files_path + '/rf_results.pkl')
+        save_object(experiment_results, result_files_path + '/' + classifier_step_name + '_results.pkl')
 
         features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
                                  dtype=[('names', 'S120'), ('RF importances', 'f4')])
@@ -225,7 +225,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
             w.writerow(['names', 'RF importances'])
             w.writerows(features_info)
     elif classifier_step_name == "knn":
-        save_object(experiment_results, result_files_path + '/knn_results.pkl')
+        save_object(experiment_results, result_files_path + '/' + classifier_step_name + '_results.pkl')
 
 
 def manual_performance_metrics(experiment_results, feature_selector, best_estimator, fs_step_name, classifier_step_name, X_train, y_train,
@@ -394,7 +394,7 @@ def manual_performance_metrics(experiment_results, feature_selector, best_estima
     print()
 
     if classifier_step_name == "linear_svm":
-        save_object(experiment_results, result_files_path + '/linear_svm_results.pkl')
+        save_object(experiment_results, result_files_path + '/' + classifier_step_name + '_results.pkl')
 
         features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
                                  dtype=[('names', 'S120'), ('linear SVM coefficients', 'f4')])
@@ -411,7 +411,7 @@ def manual_performance_metrics(experiment_results, feature_selector, best_estima
             w.writerow(['names', 'linear SVM coefficients'])
             w.writerows(features_info)
     elif classifier_step_name == "rf":
-        save_object(experiment_results, result_files_path + '/rf_results.pkl')
+        save_object(experiment_results, result_files_path + '/' + classifier_step_name + '_results.pkl')
 
         features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
                                  dtype=[('names', 'S120'), ('RF importances', 'f4')])
@@ -428,4 +428,111 @@ def manual_performance_metrics(experiment_results, feature_selector, best_estima
             w.writerow(['names', 'RF importances'])
             w.writerows(features_info)
     elif classifier_step_name == "knn":
-        save_object(experiment_results, result_files_path + '/knn_results.pkl')
+        save_object(experiment_results, result_files_path + '/' + classifier_step_name + '_results.pkl')
+
+
+def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
+    print("Loading best estimator...")
+    print()
+
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
+
+    experiment_results = load_object(result_files_path + '/' + classifier_step_name + '_results.pkl')
+
+    best_estimator = experiment_results['best_estimator']
+
+    print("Loading variable names...")
+    print()
+    with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            variable_names = np.array(list(row))
+            break
+
+    variable_names = variable_names[1:]
+
+    num_experiments = 10
+    feature_ranking = np.zeros((len(variable_names), num_experiments))
+    coefficients = np.zeros((len(variable_names), num_experiments))
+
+    for i in range(0, num_experiments):
+        print("##### Experiment " + str(i) + " Info #####")
+        print("Dataset type: ", dataset_type)
+        print("Sampling: ", sampling)
+        print("Filter FS: ", fs_step_name)
+        print("Classifier: ", classifier_step_name)
+        print()
+
+        raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/experiment_' + str(i) + '_train.csv', delimiter=',')
+        raw_train_data = raw_train_data[1:, :]
+
+        X_train = raw_train_data[:, 1:]
+        y_train = raw_train_data[:, 0]
+
+        print("Re-fitting best estimator...")
+        print()
+        best_estimator.fit(X_train, y_train)
+
+        selected_features = np.zeros(X_train.shape[1])
+        selected_features[best_estimator.named_steps[fs_step_name].get_support()] = 1
+
+        feature_ranking[:, i] = selected_features
+
+        if classifier_step_name != "knn":
+            selected_coefficients = np.zeros(X_train.shape[1])
+
+            if classifier_step_name == "linear_svm":
+                selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
+                    best_estimator.named_steps[classifier_step_name].coef_
+            elif classifier_step_name == "rf":
+                selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
+                    best_estimator.named_steps[classifier_step_name].feature_importances_
+
+            coefficients[:, i] = selected_coefficients
+
+    print("Calculating final feature ranking")
+    print()
+
+    final_ranking = np.sum(feature_ranking, axis=1)
+
+    save_object(feature_ranking, result_files_path + '/feature_stability.pkl')
+
+    if classifier_step_name == "knn":
+        features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
+                                 dtype=[('names', 'S120'), ('stability', '>i4')])
+    else:
+        if classifier_step_name == "linear_svm":
+            mean_name = "coefficients_mean"
+            abs_mean_name = "abs_coefficients_mean"
+            scaled_name = "scaled_coefficients"
+
+            save_object(coefficients, result_files_path + '/feature_coefficients.pkl')
+        elif classifier_step_name == "rf":
+            mean_name = "importances_mean"
+            abs_mean_name = "abs_importances_mean"
+            scaled_name = "scaled_importances"
+
+            save_object(coefficients, result_files_path + '/feature_importances.pkl')
+
+        features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
+                                 dtype=[('names', 'S120'), ('stability', '>i4'), (mean_name, '>f8'),
+                                        (abs_mean_name, '>f8'), (scaled_name, '>f8')])
+
+    features_info['names'] = variable_names
+    features_info['stability'] = final_ranking
+
+    if classifier_step_name != "knn":
+        features_info[mean_name] = np.mean(coefficients, axis=1)
+        features_info[abs_mean_name] = np.mean(np.abs(coefficients), axis=1)
+        features_info[scaled_name] = np.mean((coefficients - np.min(coefficients)) / (np.max(coefficients) - np.min(coefficients)), axis=1)
+
+    with open(result_files_path + '/general_features_info.csv', 'w') as f:
+        w = csv.writer(f)
+
+        header = ['names', 'stability']
+
+        if classifier_step_name != "knn":
+            header.append([mean_name, abs_mean_name, scaled_name])
+
+        w.writerow(header)
+        w.writerows(features_info)
