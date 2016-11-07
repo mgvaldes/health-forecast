@@ -4,95 +4,97 @@ import os
 from sklearn.model_selection import StratifiedKFold
 from sklearn.feature_selection import SelectFromModel
 from sklearn.svm import SVC
-from utils_functions import save_object, performance_metrics
-from sklearn.pipeline import Pipeline
+from utils_functions import performance_metrics, feature_metrics
+from imblearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 import math
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import RandomOverSampler, SMOTE
 
 
-def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
-    print("Loading variable names...")
-    print()
-    with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        for row in reader:
-            variable_names = np.array(list(row))
-            break
-
-    variable_names = variable_names[1:]
-
-    num_experiments = 10
-    seeds = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-    feature_ranking = np.zeros((len(variable_names), num_experiments))
-
-    for i in range(0, num_experiments):
-        print("Loading experiment " + str(i) + " data...")
-        print()
-        raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/experiment_' + str(i) + '_train.csv', delimiter=',')
-        raw_train_data = raw_train_data[1:, :]
-
-        X_train = raw_train_data[:, 1:]
-        y_train = raw_train_data[:, 0]
-
-        param_grid = dict()
-
-        if fs_step_name == "rlr_l1":
-            LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
-
-            param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
-
-            rlr_l1 = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False,
-                                        n_jobs=-1)
-
-            embedded = SelectFromModel(rlr_l1)
-        elif fs_step_name == "rlr_l2":
-            LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
-
-            param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
-
-            rlr_l2 = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l2', dual=False,
-                                        n_jobs=-1)
-
-            embedded = SelectFromModel(rlr_l2)
-
-        print("Performing gridsearch...")
-        print()
-
-        pipe_gridsearch = GridSearchCV(embedded, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
-                                       cv=StratifiedKFold(n_splits=5, random_state=seeds[i]))
-        pipe_gridsearch.fit(X_train, y_train)
-
-        print("Best parameters set found on development set:")
-        print()
-        print(pipe_gridsearch.best_params_)
-        print()
-
-        selected_features = np.zeros(X_train.shape[1])
-        selected_features[pipe_gridsearch.best_estimator_.get_support()] = 1
-
-        feature_ranking[:, i] = selected_features
-
-    print("Calculating final feature ranking")
-    print()
-
-    final_ranking = np.sum(feature_ranking, axis=1)
-
-    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
-
-    save_object(feature_ranking, result_files_path + '/feature_ranking.pkl')
-
-    features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
-                             dtype=[('names', 'S120'), ('stability', '>i4')])
-    features_info['names'] = variable_names
-    features_info['stability'] = final_ranking
-
-    with open(result_files_path + '/stability_features_info.csv', 'w') as f:
-        w = csv.writer(f)
-        w.writerow(['names', 'stability'])
-        w.writerows(features_info)
+# def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
+#     print("Loading variable names...")
+#     print()
+#     with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
+#         reader = csv.reader(csvfile, delimiter=',')
+#         for row in reader:
+#             variable_names = np.array(list(row))
+#             break
+#
+#     variable_names = variable_names[1:]
+#
+#     num_experiments = 10
+#     seeds = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+#     feature_ranking = np.zeros((len(variable_names), num_experiments))
+#
+#     for i in range(0, num_experiments):
+#         print("Loading experiment " + str(i) + " data...")
+#         print()
+#         raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/experiment_' + str(i) + '_train.csv', delimiter=',')
+#         raw_train_data = raw_train_data[1:, :]
+#
+#         X_train = raw_train_data[:, 1:]
+#         y_train = raw_train_data[:, 0]
+#
+#         param_grid = dict()
+#
+#         if fs_step_name == "rlr_l1":
+#             LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
+#
+#             param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
+#
+#             rlr_l1 = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l1', dual=False,
+#                                         n_jobs=-1)
+#
+#             embedded = SelectFromModel(rlr_l1)
+#         elif fs_step_name == "rlr_l2":
+#             LR_C_OPTIONS = [10, 50, 100, 500, 1000, 1500]
+#
+#             param_grid[fs_step_name + '__estimator__C'] = LR_C_OPTIONS
+#
+#             rlr_l2 = LogisticRegression(random_state=seeds[i], class_weight="balanced", penalty='l2', dual=False,
+#                                         n_jobs=-1)
+#
+#             embedded = SelectFromModel(rlr_l2)
+#
+#         print("Performing gridsearch...")
+#         print()
+#
+#         pipe_gridsearch = GridSearchCV(embedded, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
+#                                        cv=StratifiedKFold(n_splits=5, random_state=seeds[i]))
+#         pipe_gridsearch.fit(X_train, y_train)
+#
+#         print("Best parameters set found on development set:")
+#         print()
+#         print(pipe_gridsearch.best_params_)
+#         print()
+#
+#         selected_features = np.zeros(X_train.shape[1])
+#         selected_features[pipe_gridsearch.best_estimator_.get_support()] = 1
+#
+#         feature_ranking[:, i] = selected_features
+#
+#     print("Calculating final feature ranking")
+#     print()
+#
+#     final_ranking = np.sum(feature_ranking, axis=1)
+#
+#     result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
+#
+#     save_object(feature_ranking, result_files_path + '/feature_ranking.pkl')
+#
+#     features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
+#                              dtype=[('names', 'S120'), ('stability', '>i4')])
+#     features_info['names'] = variable_names
+#     features_info['stability'] = final_ranking
+#
+#     with open(result_files_path + '/stability_features_info.csv', 'w') as f:
+#         w = csv.writer(f)
+#         w.writerow(['names', 'stability'])
+#         w.writerows(features_info)
 
 # def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
 #     print("Loading variable names...")
@@ -193,6 +195,14 @@ def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, 
 
 
 def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
+    print("##### Experiment Info #####")
+    print("Dataset type: ", dataset_type)
+    print("Sampling: ", sampling)
+    print("Filter FS: ", fs_step_name)
+    print("Classifier: ", classifier_step_name)
+    print()
+
+
     print("Loading variable names...")
     print()
     with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
@@ -203,15 +213,30 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
     variable_names = variable_names[1:]
 
+    sampling_seeds = [123, 456, 789]
+
     print("Loading experiment data...")
     print()
-    raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_train.csv', delimiter=',')
+
+    # raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_train.csv', delimiter=',')
+    # raw_train_data = raw_train_data[1:, :]
+    #
+    # X_train = raw_train_data[:, 1:]
+    # y_train = raw_train_data[:, 0]
+    #
+    # raw_test_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_test.csv', delimiter=',')
+    # raw_test_data = raw_test_data[1:, :]
+    #
+    # X_test = raw_test_data[:, 1:]
+    # y_test = raw_test_data[:, 0]
+
+    raw_train_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_train.csv', delimiter=',')
     raw_train_data = raw_train_data[1:, :]
 
     X_train = raw_train_data[:, 1:]
     y_train = raw_train_data[:, 0]
 
-    raw_test_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_test.csv', delimiter=',')
+    raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_test.csv', delimiter=',')
     raw_test_data = raw_test_data[1:, :]
 
     X_test = raw_test_data[:, 1:]
@@ -261,7 +286,31 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
         classifier = KNeighborsClassifier(n_jobs=-1)
 
-    pipe = Pipeline([(fs_step_name, embedded), (classifier_step_name, classifier)])
+    # pipe = Pipeline([(fs_step_name, embedded), (classifier_step_name, classifier)])
+
+    if sampling_timing == "sampling_before_fs":
+        if sampling == "raw":
+            pipe = Pipeline([(fs_step_name, filter)])
+        else:
+            if sampling == "down_sample":
+                pipe = Pipeline([(sampling, RandomUnderSampler(random_state=sampling_seeds[0]))])
+            elif sampling == "up_sample":
+                pipe = Pipeline([(sampling, RandomOverSampler(random_state=sampling_seeds[1]))])
+            elif sampling == "smote_sample":
+                pipe = Pipeline([(sampling, SMOTE(n_jobs=-1, random_state=sampling_seeds[2]))])
+
+            pipe.steps.append((fs_step_name, filter))
+    elif sampling_timing == "sampling_after_fs":
+        pipe = Pipeline([(fs_step_name, filter)])
+
+        if sampling == "down_sample":
+            pipe.steps.append((sampling, RandomUnderSampler(random_state=sampling_seeds[0])))
+        elif sampling == "up_sample":
+            pipe.steps.append((sampling, RandomOverSampler(random_state=sampling_seeds[1])))
+        elif sampling == "smote_sample":
+            pipe.steps.append((sampling, SMOTE(n_jobs=-1, random_state=sampling_seeds[2])))
+
+    pipe.steps.append((classifier_step_name, classifier))
 
     print("Performing gridsearch...")
     print()
@@ -290,43 +339,49 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
 if __name__ == '__main__':
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
-    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
     disease = "lung_cancer"
     chromosome = "chr12"
 
-    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
 
     sampling_timings = ["sampling_before_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    # sampling_types = ["raw"]
     dataset_types = ["genomic", "genomic_epidemiological"]
-    # dataset_types = ["genomic"]
-    fs_step_name = "rlr_l2"
-    classifier_step_name = "rf"
+    fs_step_names = ["rlr_l2"]
+    classifier_step_names = ["linear_svm"]
 
-    classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
+    for fs_step_name in fs_step_names:
+        fs_dir = os.getcwd() + '/' + fs_step_name
 
-    if not os.path.exists(classifier_dir):
-        os.makedirs(classifier_dir)
+        if not os.path.exists(fs_dir):
+            os.makedirs(fs_dir)
 
-    for sampling_timing in sampling_timings:
-        sampling_timing_dir = classifier_dir + '/' + sampling_timing
+        for classifier_step_name in classifier_step_names:
+            classifier_dir = fs_dir + '/classifiers/' + classifier_step_name
 
-        if not os.path.exists(sampling_timing_dir):
-            os.makedirs(sampling_timing_dir)
+            if not os.path.exists(classifier_dir):
+                os.makedirs(classifier_dir)
 
-        for sampling in sampling_types:
-            sampling_dir = sampling_timing_dir + '/' + sampling
+            for sampling_timing in sampling_timings:
+                sampling_timing_dir = classifier_dir + '/' + sampling_timing
 
-            if not os.path.exists(sampling_dir):
-                os.makedirs(sampling_dir)
+                if not os.path.exists(sampling_timing_dir):
+                    os.makedirs(sampling_timing_dir)
 
-            for dataset_type in dataset_types:
-                dataset_dir = sampling_dir + '/' + dataset_type
+                for sampling in sampling_types:
+                    sampling_dir = sampling_timing_dir + '/' + sampling
 
-                if not os.path.exists(dataset_dir):
-                    os.makedirs(dataset_dir)
+                    if not os.path.exists(sampling_dir):
+                        os.makedirs(sampling_dir)
 
-                general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name,
-                                    classifier_step_name)
-                stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
+                    for dataset_type in dataset_types:
+                        dataset_dir = sampling_dir + '/' + dataset_type
+
+                        if not os.path.exists(dataset_dir):
+                            os.makedirs(dataset_dir)
+
+                        general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name,
+                                            classifier_step_name)
+                        feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_name,
+                                        classifier_step_name)
