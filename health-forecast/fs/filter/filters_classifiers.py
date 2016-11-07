@@ -5,13 +5,16 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.feature_selection import f_classif, SelectPercentile
 from sklearn.svm import SVC
 from utils_functions import save_object, performance_metrics
-from sklearn.pipeline import Pipeline
+# from sklearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import FunctionTransformer
 import math
 from sampling import down_sample, up_sample, smote_sample
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import RandomOverSampler, SMOTE
 
 
 def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
@@ -157,9 +160,17 @@ def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, 
 
 
 def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
+    print("##### Experiment Info #####")
+    print("Dataset type: ", dataset_type)
+    print("Sampling: ", sampling)
+    print("Filter FS: ", fs_step_name)
+    print("Classifier: ", classifier_step_name)
+    print()
+
     print("Loading variable names...")
     print()
-    with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
+    # with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
+    with open(main_path + dataset_type + '/raw/raw_train.csv', 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
             variable_names = np.array(list(row))
@@ -172,21 +183,27 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     print("Loading experiment data...")
     print()
 
-    if sampling_timing == "sampling_before_fs":
-        raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_train.csv', delimiter=',')
-        raw_train_data = raw_train_data[1:, :]
-    elif sampling_timing == "sampling_after_fs":
-        raw_train_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_train.csv', delimiter=',')
-        raw_train_data = raw_train_data[1:, :]
+    # if sampling_timing == "sampling_before_fs":
+    #     raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_train.csv', delimiter=',')
+    #     raw_train_data = raw_train_data[1:, :]
+    # elif sampling_timing == "sampling_after_fs":
+    #     raw_train_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_train.csv', delimiter=',')
+    #     raw_train_data = raw_train_data[1:, :]
+
+    raw_train_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_train.csv', delimiter=',')
+    raw_train_data = raw_train_data[1:, :]
 
     X_train = raw_train_data[:, 1:]
     y_train = raw_train_data[:, 0]
+    # y_train = np.reshape(y_train, (y_train.shape[0], 1))
 
-    raw_test_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_test.csv', delimiter=',')
+    # raw_test_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_test.csv', delimiter=',')
+    raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_test.csv', delimiter=',')
     raw_test_data = raw_test_data[1:, :]
 
     X_test = raw_test_data[:, 1:]
     y_test = raw_test_data[:, 0]
+    # y_test = np.reshape(y_test, (y_test.shape[0], 1))
 
     experiment_results = dict()
 
@@ -218,27 +235,48 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
         classifier = KNeighborsClassifier(n_jobs=-1)
 
-    if sampling_timing == "sampling_before_fs":
-        pipe = Pipeline([(fs_step_name, filter), (classifier_step_name, classifier)])
-    elif sampling_timing == "sampling_after_fs":
-        if sampling == "raw":
-            pipe = Pipeline([(fs_step_name, filter), (classifier_step_name, classifier)])
-        else:
-            if sampling == "down_sample":
-                sampling_transformer = FunctionTransformer(func=down_sample,
-                                                           kw_args={'y': y_train, 'seed': seeds[0],
-                                                                    'return_target': False})
-            elif sampling == "up_sample":
-                sampling_transformer = FunctionTransformer(func=up_sample,
-                                                           kw_args={'y': y_train, 'seed': seeds[1],
-                                                                    'return_target': False})
-            elif sampling == "smote_sample":
-                sampling_transformer = FunctionTransformer(func=smote_sample,
-                                                           kw_args={'y': y_train, 'seed': seeds[2],
-                                                                    'return_target': False})
+    # if sampling_timing == "sampling_before_fs":
+    #     pipe = Pipeline([(fs_step_name, filter), (classifier_step_name, classifier)])
+    # elif sampling_timing == "sampling_after_fs":
+    #     if sampling == "raw":
+    #         pipe = Pipeline([(fs_step_name, filter), (classifier_step_name, classifier)])
+    #     else:
+    #         if sampling == "down_sample":
+    #             sampling_transformer = FunctionTransformer(func=down_sample,
+    #                                                        kw_args={'y': y_train, 'seed': seeds[0],
+    #                                                                 'return_target': False})
+    #         elif sampling == "up_sample":
+    #             sampling_transformer = FunctionTransformer(func=up_sample,
+    #                                                        kw_args={'y': y_train, 'seed': seeds[1],
+    #                                                                 'return_target': False})
+    #         elif sampling == "smote_sample":
+    #             sampling_transformer = FunctionTransformer(func=smote_sample,
+    #                                                        kw_args={'y': y_train, 'seed': seeds[2],
+    #                                                                 'return_target': False})
+    #
+    #         pipe = Pipeline(
+    #             [(sampling, sampling_transformer), (fs_step_name, filter), (classifier_step_name, classifier)])
 
-            pipe = Pipeline(
-                [(fs_step_name, filter), ('sampling', sampling_transformer), (classifier_step_name, classifier)])
+    if sampling_timing == "sampling_before_fs":
+        if sampling == "down_sample":
+            pipe = Pipeline([(sampling, RandomUnderSampler(random_state=seeds[0]))])
+        elif sampling == "up_sample":
+            pipe = Pipeline([(sampling, RandomOverSampler(random_state=seeds[1]))])
+        elif sampling == "smote_sample":
+            pipe = Pipeline([(sampling, SMOTE(n_jobs=-1, random_state=seeds[2]))])
+
+        pipe.steps.append((fs_step_name, filter))
+    elif sampling_timing == "sampling_after_fs":
+        pipe = Pipeline([(fs_step_name, filter)])
+
+        if sampling == "down_sample":
+            pipe.steps.append((sampling, RandomUnderSampler(random_state=seeds[0])))
+        elif sampling == "up_sample":
+            pipe.steps.append((sampling, RandomOverSampler(random_state=seeds[1])))
+        elif sampling == "smote_sample":
+            pipe.steps.append((sampling, SMOTE(n_jobs=-1, random_state=seeds[2])))
+
+    pipe.steps.append((classifier_step_name, classifier))
 
     print("Performing gridsearch...")
     print()
@@ -246,14 +284,14 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
                                    cv=StratifiedKFold(n_splits=5, random_state=123456))
 
-    if sampling_timing == "sampling_after_fs":
-        if sampling != "raw":
-            if sampling == "down_sample":
-                y_train = down_sample(X_train, y_train, seeds[0], True)
-            elif sampling == "up_sample":
-                y_train = up_sample(X_train, y_train, seeds[1], True)
-            elif sampling == "smote_sample":
-                y_train = smote_sample(X_train, y_train, seeds[2], True)
+    # if sampling_timing == "sampling_after_fs":
+    #     if sampling != "raw":
+    #         if sampling == "down_sample":
+    #             y_train = down_sample(X_train, y_train, seeds[0], True)
+    #         elif sampling == "up_sample":
+    #             y_train = up_sample(X_train, y_train, seeds[1], True)
+    #         elif sampling == "smote_sample":
+    #             y_train = smote_sample(X_train, y_train, seeds[2], True)
 
     pipe_gridsearch.fit(X_train, y_train)
 
@@ -282,33 +320,40 @@ if __name__ == '__main__':
     main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
 
     sampling_timings = ["sampling_before_fs"]
-    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    sampling_types = ["down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
-    fs_step_name = "anova"
-    classifier_step_name = "knn"
+    fs_step_names = ["anova"]
+    classifier_step_names = ["linear_svm"]
 
-    classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
+    for fs_step_name in fs_step_names:
+        fs_dir = os.getcwd() + '/' + fs_step_name
 
-    if not os.path.exists(classifier_dir):
-        os.makedirs(classifier_dir)
+        if not os.path.exists(fs_dir):
+            os.makedirs(fs_dir)
 
-    for sampling_timing in sampling_timings:
-        sampling_timing_dir = classifier_dir + '/' + sampling_timing
+        for classifier_step_name in classifier_step_names:
+            classifier_dir = fs_dir + '/classifiers/' + classifier_step_name
 
-        if not os.path.exists(sampling_timing_dir):
-            os.makedirs(sampling_timing_dir)
+            if not os.path.exists(classifier_dir):
+                os.makedirs(classifier_dir)
 
-        for sampling in sampling_types:
-            sampling_dir = sampling_timing_dir + '/' + sampling
+            for sampling_timing in sampling_timings:
+                sampling_timing_dir = classifier_dir + '/' + sampling_timing
 
-            if not os.path.exists(sampling_dir):
-                os.makedirs(sampling_dir)
+                if not os.path.exists(sampling_timing_dir):
+                    os.makedirs(sampling_timing_dir)
 
-            for dataset_type in dataset_types:
-                dataset_dir = sampling_dir + '/' + dataset_type
+                for sampling in sampling_types:
+                    sampling_dir = sampling_timing_dir + '/' + sampling
 
-                if not os.path.exists(dataset_dir):
-                    os.makedirs(dataset_dir)
+                    if not os.path.exists(sampling_dir):
+                        os.makedirs(sampling_dir)
 
-                general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
-                stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
+                    for dataset_type in dataset_types:
+                        dataset_dir = sampling_dir + '/' + dataset_type
+
+                        if not os.path.exists(dataset_dir):
+                            os.makedirs(dataset_dir)
+
+                        general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
+                        # stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
