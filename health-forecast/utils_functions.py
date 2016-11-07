@@ -514,7 +514,9 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
 
             save_object(coefficients, result_files_path + '/feature_importances.pkl')
 
-        features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
+        features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)),
+                                          np.repeat(0, len(variable_names)), np.repeat(0, len(variable_names)),
+                                          np.repeat(0, len(variable_names)))),
                                  dtype=[('names', 'S120'), ('stability', '>i4'), (mean_name, '>f8'),
                                         (abs_mean_name, '>f8'), (scaled_name, '>f8')])
 

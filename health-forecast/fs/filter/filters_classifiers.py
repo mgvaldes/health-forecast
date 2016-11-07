@@ -195,11 +195,11 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
         pipe = Pipeline([(fs_step_name, filter)])
 
         if sampling == "down_sample":
-            pipe.steps.append((sampling, RandomUnderSampler(random_state=seeds[0])))
+            pipe.steps.append((sampling, RandomUnderSampler(random_state=sampling_seeds[0])))
         elif sampling == "up_sample":
-            pipe.steps.append((sampling, RandomOverSampler(random_state=seeds[1])))
+            pipe.steps.append((sampling, RandomOverSampler(random_state=sampling_seeds[1])))
         elif sampling == "smote_sample":
-            pipe.steps.append((sampling, SMOTE(n_jobs=-1, random_state=seeds[2])))
+            pipe.steps.append((sampling, SMOTE(n_jobs=-1, random_state=sampling_seeds[2])))
 
     pipe.steps.append((classifier_step_name, classifier))
 
