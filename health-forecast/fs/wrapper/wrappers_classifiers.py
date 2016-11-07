@@ -247,14 +247,17 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     # pipe = Pipeline([(fs_step_name, wrapper), (classifier_step_name, classifier)])
 
     if sampling_timing == "sampling_before_fs":
-        if sampling == "down_sample":
-            pipe = Pipeline([(sampling, RandomUnderSampler(random_state=seeds[0]))])
-        elif sampling == "up_sample":
-            pipe = Pipeline([(sampling, RandomOverSampler(random_state=seeds[1]))])
-        elif sampling == "smote_sample":
-            pipe = Pipeline([(sampling, SMOTE(n_jobs=-1, random_state=seeds[2]))])
+        if sampling == "raw":
+            pipe = Pipeline([(fs_step_name, wrapper)])
+        else:
+            if sampling == "down_sample":
+                pipe = Pipeline([(sampling, RandomUnderSampler(random_state=seeds[0]))])
+            elif sampling == "up_sample":
+                pipe = Pipeline([(sampling, RandomOverSampler(random_state=seeds[1]))])
+            elif sampling == "smote_sample":
+                pipe = Pipeline([(sampling, SMOTE(n_jobs=-1, random_state=seeds[2]))])
 
-        pipe.steps.append((fs_step_name, wrapper))
+            pipe.steps.append((fs_step_name, wrapper))
     elif sampling_timing == "sampling_after_fs":
         pipe = Pipeline([(fs_step_name, wrapper)])
 
@@ -296,7 +299,8 @@ if __name__ == '__main__':
     disease = "lung_cancer"
     chromosome = "chr12"
 
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
 
     sampling_timings = ["sampling_before_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
