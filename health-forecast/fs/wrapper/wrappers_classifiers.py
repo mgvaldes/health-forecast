@@ -168,7 +168,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     print("##### Experiment Info #####")
     print("Dataset type: ", dataset_type)
     print("Sampling: ", sampling)
-    print("Filter FS: ", fs_step_name)
+    print("Wrapper FS: ", fs_step_name)
     print("Classifier: ", classifier_step_name)
     print()
 
