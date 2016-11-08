@@ -439,7 +439,7 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
         print("##### Experiment " + str(i) + " Info #####")
         print("Dataset type: ", dataset_type)
         print("Sampling: ", sampling)
-        print("Filter FS: ", fs_step_name)
+        print("FS: ", fs_step_name)
         print("Classifier: ", classifier_step_name)
         print()
 
@@ -469,6 +469,18 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
                     best_estimator.named_steps[classifier_step_name].feature_importances_
 
             coefficients[:, i] = selected_coefficients
+
+        # if classifier_step_name == "linear_svm":
+        #     selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
+        #         best_estimator.named_steps[classifier_step_name].coef_
+        # elif classifier_step_name == "rf":
+        #     selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
+        #         best_estimator.named_steps[classifier_step_name].feature_importances_
+        # elif classifier_step_name == "knn":
+        #     selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
+        #         best_estimator.named_steps[classifier_step_name].feature_importances_
+        #
+        # coefficients[:, i] = selected_coefficients
 
     print("Calculating final feature ranking")
     print()

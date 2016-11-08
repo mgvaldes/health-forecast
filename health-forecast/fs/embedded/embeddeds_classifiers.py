@@ -348,7 +348,7 @@ if __name__ == '__main__':
     sampling_timings = ["sampling_before_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
-    fs_step_names = ["rlr_l2"]
+    fs_step_names = ["rlr_l1"]
     classifier_step_names = ["linear_svm", "rf", "knn"]
 
     for fs_step_name in fs_step_names:

@@ -9,12 +9,13 @@ def read_results(filename):
 
     results_tup = ()
 
+    results_tup = results_tup + (results['cv_score'],)
+    results_tup = results_tup + (results['train_score'],)
     results_tup = results_tup + (results['f1'], )
     results_tup = results_tup + (results['neg_auc'],)
     results_tup = results_tup + (results['precision'],)
     results_tup = results_tup + (results['recall'],)
     results_tup = results_tup + (results['accuracy'],)
-    results_tup = results_tup + (results['cv_score'],)
     results_tup = results_tup + (results['neg_precision'],)
     results_tup = results_tup + (results['neg_recall'],)
     results_tup = results_tup + (results['neg_f1'],)
@@ -32,7 +33,7 @@ if __name__ == '__main__':
     fs_types = [("filter", "anova"), ("wrapper", "rfe_lr"), ("embedded", "rlr_l1")]
     classifier_types = ["linear_svm", "rf", "knn"]
 
-    resume_results = np.zeros(0, dtype=('a50, a50, a50, a50, float64, float64, float64, float64, float64, float64, '
+    resume_results = np.zeros(0, dtype=('a50, a50, a50, a50, float64, float64, float64, float64, float64, float64, float64, '
                                         'float64, float64, float64, float64, float64, float64'))
 
     for fs_type in fs_types:
@@ -56,7 +57,7 @@ if __name__ == '__main__':
 
     with open(os.getcwd() + '/resumed_results.csv', 'w') as f:
         w = csv.writer(f)
-        w.writerow(['sampling', 'fs', 'classifier', 'data', 'f1', 'auc', 'precision', 'recall', 'accuracy', 'cv f1', 'precision (1)', 'recall (1)', 'f1 (1)', 'precision (0)', 'recall (0)', 'f1 (0)'])
+        w.writerow(['sampling', 'fs', 'classifier', 'data', 'cv f1', 'train f1', 'test f1', 'test auc', 'test precision', 'test recall', 'test accuracy', 'test precision (1)', 'test recall (1)', 'test f1 (1)', 'test precision (0)', 'test recall (0)', 'test f1 (0)'])
         w.writerows(resume_results)
 
     # classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
