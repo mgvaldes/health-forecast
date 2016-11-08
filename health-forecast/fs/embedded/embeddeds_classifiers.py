@@ -349,7 +349,7 @@ if __name__ == '__main__':
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     fs_step_names = ["rlr_l1"]
-    classifier_step_names = ["linear_svm", "rf", "knn"]
+    classifier_step_names = ["knn"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name
@@ -381,7 +381,7 @@ if __name__ == '__main__':
                         if not os.path.exists(dataset_dir):
                             os.makedirs(dataset_dir)
 
-                        general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name,
-                                            classifier_step_name)
+                        # general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name,
+                        #                     classifier_step_name)
                         feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_name,
                                         classifier_step_name)
