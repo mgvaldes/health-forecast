@@ -458,7 +458,7 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
 
         feature_ranking[:, i] = selected_features
 
-        if classifier_step_name != "knn":
+        if classifier_step_name != "knn" or (classifier_step_name == "knn" and fs_step_name == "rlr_l1"):
             selected_coefficients = np.zeros(X_train.shape[1])
 
             if classifier_step_name == "linear_svm":
@@ -467,20 +467,11 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
             elif classifier_step_name == "rf":
                 selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
                     best_estimator.named_steps[classifier_step_name].feature_importances_
+            elif classifier_step_name == "knn":
+                selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
+                    best_estimator.named_steps[fs_step_name].estimator_.coef_
 
             coefficients[:, i] = selected_coefficients
-
-        # if classifier_step_name == "linear_svm":
-        #     selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
-        #         best_estimator.named_steps[classifier_step_name].coef_
-        # elif classifier_step_name == "rf":
-        #     selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
-        #         best_estimator.named_steps[classifier_step_name].feature_importances_
-        # elif classifier_step_name == "knn":
-        #     selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
-        #         best_estimator.named_steps[classifier_step_name].feature_importances_
-        #
-        # coefficients[:, i] = selected_coefficients
 
     print("Calculating final feature ranking")
     print()
@@ -489,10 +480,7 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
 
     save_object(feature_ranking, result_files_path + '/feature_stability.pkl')
 
-    if classifier_step_name == "knn":
-        features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
-                                 dtype=[('names', 'S120'), ('stability', '>i4')])
-    else:
+    if classifier_step_name != "knn" or (classifier_step_name == "knn" and fs_step_name == "rlr_l1"):
         if classifier_step_name == "linear_svm":
             mean_name = "coefficients_mean"
             abs_mean_name = "abs_coefficients_mean"
@@ -505,17 +493,26 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
             scaled_name = "scaled_importances"
 
             save_object(coefficients, result_files_path + '/feature_importances.pkl')
+        elif classifier_step_name == "knn":
+            mean_name = "coefficients_mean"
+            abs_mean_name = "abs_coefficients_mean"
+            scaled_name = "scaled_coefficients"
+
+            save_object(coefficients, result_files_path + '/feature_coefficients.pkl')
 
         features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)),
                                           np.repeat(0, len(variable_names)), np.repeat(0, len(variable_names)),
                                           np.repeat(0, len(variable_names)))),
                                  dtype=[('names', 'S120'), ('stability', '>i4'), (mean_name, '>f8'),
                                         (abs_mean_name, '>f8'), (scaled_name, '>f8')])
+    else:
+        features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
+                                 dtype=[('names', 'S120'), ('stability', '>i4')])
 
     features_info['names'] = variable_names
     features_info['stability'] = final_ranking
 
-    if classifier_step_name != "knn":
+    if classifier_step_name != "knn" or (classifier_step_name == "knn" and fs_step_name == "rlr_l1"):
         features_info[mean_name] = np.mean(coefficients, axis=1)
         features_info[abs_mean_name] = np.mean(np.abs(coefficients), axis=1)
         features_info[scaled_name] = np.mean((coefficients - np.min(coefficients)) / (np.max(coefficients) - np.min(coefficients)), axis=1)
@@ -523,16 +520,18 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
     with open(result_files_path + '/general_features_info.csv', 'w') as f:
         w = csv.writer(f)
 
-        header = ['names', 'stability']
+        header = list(['names', 'stability'])
 
-        if classifier_step_name != "knn":
-            header.append([mean_name, abs_mean_name, scaled_name])
+        if classifier_step_name != "knn" or (classifier_step_name == "knn" and fs_step_name == "rlr_l1"):
+            header.append(list([mean_name, abs_mean_name, scaled_name]))
 
         w.writerow(header)
         w.writerows(features_info)
 
 
 def performance_vs_data(main_path, dataset_type, best_estimator):
+    print("Loading data...")
+    print()
     raw_train_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_train.csv', delimiter=',')
     raw_train_data = raw_train_data[1:, :]
 
@@ -548,16 +547,55 @@ def performance_vs_data(main_path, dataset_type, best_estimator):
     cv_scores = []
     test_scores = []
 
-    for percentage in np.arange(0.1, 1.1, 0.1):
-        best_estimator.fit(X_train[0:(X_train.shape[0] * percentage), :], y_train[0:(X_train.shape[0] * percentage)])
+    for percentage in np.arange(0.3, 1.1, 0.1):
+        print("Using", str(percentage * 100) + "%", "of data...")
 
-        cv_score = np.mean(cross_val_score(best_estimator, X_train[0:(X_train.shape[0] * percentage), :], y_train[0:(X_train.shape[0] * percentage)], n_jobs=12,
+        rows = int(np.round(X_train.shape[0] * percentage))
+        print("Corresponding to " + str(rows) + " rows of training data.")
+
+        partial_X_train = X_train[:rows, :]
+        print("partial_X_train shape: " + str(partial_X_train.shape))
+        partial_y_train = y_train[:rows]
+        print("partial_y_train shape: " + str(partial_y_train.shape))
+
+        best_estimator.fit(partial_X_train, partial_y_train)
+
+        cv_score = np.mean(cross_val_score(best_estimator, partial_X_train, partial_y_train, n_jobs=12,
                                            cv=StratifiedKFold(n_splits=5, random_state=789012), scoring='f1_weighted'))
+        print("CV Score: " + str(cv_score))
         cv_scores.append(cv_score)
 
         y_pred = best_estimator.predict(X_test)
 
         test_score = f1_score(y_test, y_pred, average='weighted')
+        print("Test Score: " + str(test_score))
+        print()
         test_scores.append(test_score)
 
     plot_metrics_vs_data(cv_scores, test_scores)
+
+
+if __name__ == '__main__':
+    disease = "lung_cancer"
+    chromosome = "chr12"
+
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    dataset_type = "genomic"
+    sampling_timing = "sampling_before_fs"
+    sampling_type = "up_sample"
+    fs_type = ("embedded", "rlr_l1")
+    classifier_type = "knn"
+
+    # best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
+    #                      sampling_timing + '/' + sampling_type + '/' + dataset_type + '/' + classifier_type + '_results.pkl'
+    #
+    # results = load_object(best_estimator_dir)
+    #
+    # best_estimator = results['best_estimator']
+    #
+    # performance_vs_data(main_path, dataset_type, best_estimator)
+
+    best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
+                         sampling_timing + '/' + sampling_type + '/' + dataset_type + '/feature_coefficients.pkl'
+
+    results = load_object(best_estimator_dir)
