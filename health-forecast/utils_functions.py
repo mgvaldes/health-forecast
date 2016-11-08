@@ -503,8 +503,8 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
         features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)),
                                           np.repeat(0, len(variable_names)), np.repeat(0, len(variable_names)),
                                           np.repeat(0, len(variable_names)))),
-                                 dtype=[('names', 'S120'), ('stability', '>i4'), (mean_name, '>f8'),
-                                        (abs_mean_name, '>f8'), (scaled_name, '>f8')])
+                                 dtype=[('names', 'S120'), ('stability', '>i4'), (mean_name, 'float64'),
+                                        (abs_mean_name, 'float64'), (scaled_name, 'float64')])
     else:
         features_info = np.array(list(zip(np.repeat('', len(variable_names)), np.repeat(0, len(variable_names)))),
                                  dtype=[('names', 'S120'), ('stability', '>i4')])
@@ -595,7 +595,103 @@ if __name__ == '__main__':
     #
     # performance_vs_data(main_path, dataset_type, best_estimator)
 
-    best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
-                         sampling_timing + '/' + sampling_type + '/' + dataset_type + '/feature_coefficients.pkl'
+    print("Loading variable names...")
+    print()
+    with open(main_path + dataset_type + '/' + sampling_type + '/raw_train.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            variable_names = np.array(list(row))
+            break
 
-    results = load_object(best_estimator_dir)
+    variable_names = variable_names[1:]
+
+    feature_coefficients_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
+                         sampling_timing + '/' + sampling_type + '/' + dataset_type + '/'
+
+    feature_coefficients = load_object(feature_coefficients_dir + 'feature_coefficients.pkl')
+
+    feature_coefficients_final = np.array(list(zip(np.repeat('', len(variable_names)),
+                                        np.repeat(0, len(variable_names)),
+                                        np.repeat(0, len(variable_names)),
+                                        np.repeat(0, len(variable_names)),
+                                        np.repeat(0, len(variable_names)),
+                                        np.repeat(0, len(variable_names)),
+                                        np.repeat(0, len(variable_names)),
+                                        np.repeat(0, len(variable_names)),
+                                        np.repeat(0, len(variable_names)),
+                                        np.repeat(0, len(variable_names)),
+                                        np.repeat(0, len(variable_names)))),
+                                dtype=[('names', 'S120'),
+                                        ('experiment 1', 'float64'),
+                                        ('experiment 2', 'float64'),
+                                        ('experiment 3', 'float64'),
+                                        ('experiment 4', 'float64'),
+                                        ('experiment 5', 'float64'),
+                                        ('experiment 6', 'float64'),
+                                        ('experiment 7', 'float64'),
+                                        ('experiment 8', 'float64'),
+                                        ('experiment 9', 'float64'),
+                                        ('experiment 10', 'float64')])
+
+    feature_coefficients_final['names'] = variable_names
+
+    feature_stability = load_object(feature_coefficients_dir + 'feature_stability.pkl')
+
+    feature_stability_final = np.array(list(zip(np.repeat('', len(variable_names)),
+                                                   np.repeat(0, len(variable_names)),
+                                                   np.repeat(0, len(variable_names)),
+                                                   np.repeat(0, len(variable_names)),
+                                                   np.repeat(0, len(variable_names)),
+                                                   np.repeat(0, len(variable_names)),
+                                                   np.repeat(0, len(variable_names)),
+                                                   np.repeat(0, len(variable_names)),
+                                                   np.repeat(0, len(variable_names)),
+                                                   np.repeat(0, len(variable_names)),
+                                                   np.repeat(0, len(variable_names)))),
+                                          dtype=[('names', 'S120'),
+                                                 ('experiment 1', 'float64'),
+                                                 ('experiment 2', 'float64'),
+                                                 ('experiment 3', 'float64'),
+                                                 ('experiment 4', 'float64'),
+                                                 ('experiment 5', 'float64'),
+                                                 ('experiment 6', 'float64'),
+                                                 ('experiment 7', 'float64'),
+                                                 ('experiment 8', 'float64'),
+                                                 ('experiment 9', 'float64'),
+                                                 ('experiment 10', 'float64')])
+
+    feature_stability_final['names'] = variable_names
+
+    for i in range(0, 10):
+        feature_coefficients_final['experiment ' + str(i + 1)] = feature_coefficients[:, i]
+        feature_stability_final['experiment ' + str(i + 1)] = feature_stability[:, i]
+
+    with open(feature_coefficients_dir + '/feature_coefficients.csv', 'w') as f:
+        w = csv.writer(f)
+        w.writerow(['names',
+                    'experiment 1',
+                    'experiment 2',
+                    'experiment 3',
+                    'experiment 4',
+                    'experiment 5',
+                    'experiment 6',
+                    'experiment 7',
+                    'experiment 8',
+                    'experiment 9',
+                    'experiment 10'])
+        w.writerows(feature_coefficients_final)
+
+    with open(feature_coefficients_dir + '/feature_stability.csv', 'w') as f:
+        w = csv.writer(f)
+        w.writerow(['names',
+                    'experiment 1',
+                    'experiment 2',
+                    'experiment 3',
+                    'experiment 4',
+                    'experiment 5',
+                    'experiment 6',
+                    'experiment 7',
+                    'experiment 8',
+                    'experiment 9',
+                    'experiment 10'])
+        w.writerows(feature_stability_final)

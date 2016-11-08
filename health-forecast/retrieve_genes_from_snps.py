@@ -7,14 +7,20 @@ import numpy as np
 command = 'Rscript'
 path_to_script = os.getcwd() + '/retrieve_genes_from_snps.R'
 
-relevant_snps = np.genfromtxt(os.getcwd() + '/best_model_stability_10_features.csv', delimiter=',', dtype='S120')
+relevant_snps = np.genfromtxt(os.getcwd() + '/genomic_epidemiological_best_model_stability_10_features.csv', delimiter=',', dtype='S120')
 relevant_snps = relevant_snps[1:]
+relevant_snps = relevant_snps[:, 0]
 
 gene_results = np.zeros(0, dtype=('a120, a120'))
 
 for snp in relevant_snps:
     snp = str(snp).replace("b", "").replace("'", "")
     print('SNP: ', snp)
+
+    if snp.startswith('rs'):
+        gene_results = np.append(gene_results, np.array([(snp, [])], dtype=gene_results.dtype))
+
+        continue
 
     args = [snp]
 
@@ -30,7 +36,7 @@ for snp in relevant_snps:
 
     gene_results = np.append(gene_results, np.array([(snp, genes_related)], dtype=gene_results.dtype))
 
-with open(os.getcwd() + '/top_snps_genes.csv', 'w') as f:
+with open(os.getcwd() + '/genomic_epidemiological_top_snps_genes.csv', 'w') as f:
     w = csv.writer(f)
     w.writerow(['snps', 'genes'])
     w.writerows(gene_results)

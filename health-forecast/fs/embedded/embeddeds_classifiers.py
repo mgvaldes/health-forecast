@@ -346,7 +346,7 @@ if __name__ == '__main__':
     main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
 
     sampling_timings = ["sampling_before_fs"]
-    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    sampling_types = ["up_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     fs_step_names = ["rlr_l1"]
     classifier_step_names = ["knn"]

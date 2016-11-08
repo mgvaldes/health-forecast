@@ -40,6 +40,7 @@ library(muStat)
 
 #model.result <- fread("data.model", data.table = TRUE, header = TRUE)
 
+logistic.result <- fread("genomic.assoc.logistic", data.table = TRUE, header = TRUE)
 logistic.result <- fread("genomic_epidemiological.assoc.logistic", data.table = TRUE, header = TRUE)
 #logistic.adjusted.result <- fread("data2.assoc.logistic.adjusted", data.table = TRUE, header = TRUE)
 
@@ -78,6 +79,7 @@ threshold3 <- -1 * log10(0.01)
 #min.BP <- min(BP)
 #max.BP <- max(BP)
 
+png("genomic_manhattan.png", width=2000, height=1500)
 png("genomic_epidemiological_manhattan.png", width=2000, height=1500)
 #manhattan(subset(result, CHR == 12), main = "Manhattan Plot", suggestiveline = F, genomewideline = F, xlim = c(0,10), ylim = c(0,7))
 manhattan(result, main = "Manhattan Plot", suggestiveline = F, genomewideline = F, xlim = c(0,150), ylim = c(0,8))
@@ -136,6 +138,11 @@ sufix.3 <- with(data.frame(PREFIX = rep("_", length(A1.3)), A1 = A1.3), paste0(P
 SNPs.extracted.names.raw.3 <- with(data.frame(NAMES = SNPs.extracted.names.3, SUFIX = sufix.3), paste0(NAMES, SUFIX))
 
 SNPs.extracted.raw.3 <- raw.file[, SNPs.extracted.names.raw.3]
+
+P.extracted.3 <- P[SNPs.extracted.indexes.3]
+
+write.table(data.frame(names=SNPs.extracted.names.raw.3, P=P.extracted.3), file = "genomic_plink_threshold_0_01_features.csv", row.names = FALSE, col.names = TRUE, sep = ",", quote = FALSE)
+write.table(data.frame(names=SNPs.extracted.names.raw.3, P=P.extracted.3), file = "genomic_epidemiological_plink_threshold_0_01_features.csv", row.names = FALSE, col.names = TRUE, sep = ",", quote = FALSE)
 
 write.table(SNPs.extracted.names.raw.3, file = "plink_threshold_0_01_features.csv", row.names = FALSE, col.names = TRUE, sep = ",", quote = FALSE)
 
