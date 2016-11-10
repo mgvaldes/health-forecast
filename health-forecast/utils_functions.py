@@ -415,7 +415,7 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
     print("Loading best estimator...")
     print()
 
-    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + sampling + '/' + dataset_type
 
     experiment_results = load_object(result_files_path + '/' + classifier_step_name + '_results.pkl')
 

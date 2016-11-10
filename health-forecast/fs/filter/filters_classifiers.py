@@ -235,13 +235,14 @@ if __name__ == '__main__':
     disease = "lung_cancer"
     chromosome = "chr12"
 
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
 
-    sampling_timings = ["sampling_before_fs"]
+    sampling_timings = ["sampling_after_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     fs_step_names = ["anova"]
-    classifier_step_names = ["rf", "knn"]
+    classifier_step_names = ["linear_svm", "rf", "knn"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name

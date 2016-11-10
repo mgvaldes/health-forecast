@@ -342,11 +342,11 @@ if __name__ == '__main__':
     disease = "lung_cancer"
     chromosome = "chr12"
 
-    # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
 
     sampling_timings = ["sampling_after_fs"]
-    sampling_types = ["up_sample"]
+    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     fs_step_names = ["rlr_l1"]
     classifier_step_names = ["linear_svm", "rf", "knn"]
