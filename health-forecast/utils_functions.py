@@ -8,6 +8,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, precision_recall_f
 from sklearn.metrics import roc_curve, auc, f1_score, roc_auc_score
 from plot_functions import plot_confusion_matrix, plot_roc, plot_metrics_vs_data
 from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import Imputer
 
 
 def save_object(obj, filename):
@@ -583,25 +584,59 @@ def performance_vs_data(main_path, dataset_type, best_estimator):
     plot_metrics_vs_data(cv_scores, test_scores)
 
 
+def iter_loadtxt(filename, delimiter=',', skiprows=1, dtype=float):
+    def iter_func():
+        with open(filename, 'r') as infile:
+            for _ in range(skiprows):
+                next(infile)
+            for line in infile:
+                line = line.rstrip().split(delimiter)
+                for item in line:
+                    yield dtype(item)
+        iter_loadtxt.rowlength = len(line)
+
+    data = np.fromiter(iter_func(), dtype=dtype)
+    data = data.reshape((-1, iter_loadtxt.rowlength))
+    return data
+
+
+def impute_missing_values(filename):
+    print("Loading data...")
+    print()
+    data = iter_loadtxt(filename)
+
+    imputer = Imputer(missing_values=-1, strategy="mean", axis=0, verbose=20)
+
+    print("Imputing values to missing data...")
+    print()
+    imputer.fit_transform(data)
+
+    return data
+
 if __name__ == '__main__':
-    disease = "lung_cancer"
-    chromosome = "chr12"
+    # disease = "lung_cancer"
+    # chromosome = "chr12"
+    #
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    # dataset_type = "genomic"
+    # sampling_timing = "sampling_before_fs"
+    # sampling_type = "up_sample"
+    # fs_type = ("embedded", "rlr_l1")
+    # classifier_type = "knn"
+    #
+    # best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
+    #                      sampling_timing + '/' + sampling_type + '/' + dataset_type + '/' + classifier_type + '_results.pkl'
+    #
+    # results = load_object(best_estimator_dir)
+    #
+    # best_estimator = results['best_estimator']
+    #
+    # performance_vs_data(main_path, dataset_type, best_estimator)
 
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
-    dataset_type = "genomic"
-    sampling_timing = "sampling_before_fs"
-    sampling_type = "up_sample"
-    fs_type = ("embedded", "rlr_l1")
-    classifier_type = "knn"
+    disease = "diabetes"
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/complete_diabetes_genomic_epidemiological.csv'
 
-    best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
-                         sampling_timing + '/' + sampling_type + '/' + dataset_type + '/' + classifier_type + '_results.pkl'
-
-    results = load_object(best_estimator_dir)
-
-    best_estimator = results['best_estimator']
-
-    performance_vs_data(main_path, dataset_type, best_estimator)
+    data = impute_missing_values(main_path)
 
     # print("Loading variable names...")
     # print()
