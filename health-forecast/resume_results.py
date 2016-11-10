@@ -27,7 +27,7 @@ def read_results(filename):
 
 
 if __name__ == '__main__':
-    sampling_timings = ["sampling_before_fs"]
+    sampling_timings = ["sampling_after_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
     fs_types = [("filter", "anova"), ("wrapper", "rfe_lr"), ("embedded", "rlr_l1")]
