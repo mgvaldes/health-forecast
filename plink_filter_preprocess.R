@@ -40,7 +40,7 @@ library(muStat)
 
 #model.result <- fread("data.model", data.table = TRUE, header = TRUE)
 
-# logistic.result <- fread("genomic.assoc.logistic", data.table = TRUE, header = TRUE)
+logistic.result <- fread("genomic.assoc.logistic", data.table = TRUE, header = TRUE)
 logistic.result <- fread("genomic_epidemiological.assoc.logistic", data.table = TRUE, header = TRUE)
 
 #logistic.adjusted.result <- fread("data2.assoc.logistic.adjusted", data.table = TRUE, header = TRUE)
@@ -142,8 +142,10 @@ SNPs.extracted.raw.3 <- raw.file[, SNPs.extracted.names.raw.3]
 
 P.extracted.3 <- P[SNPs.extracted.indexes.3]
 
-# write.table(data.frame(SNPs=SNPs.extracted.names.raw.3, P=P.extracted.3), file = "genomic_plink_threshold_0_01_features.csv", row.names = FALSE, col.names = TRUE, sep = ",", quote = FALSE)
-write.table(data.frame(SNPs=SNPs.extracted.names.raw.3, P=P.extracted.3), file = "genomic_epidemiological_plink_threshold_0_01_features.csv", row.names = FALSE, col.names = TRUE, sep = ",", quote = FALSE)
+write.table(data.frame(names=SNPs.extracted.names.raw.3, P=P.extracted.3), file = "genomic_plink_threshold_0_01_features.csv", row.names = FALSE, col.names = TRUE, sep = ",", quote = FALSE)
+write.table(data.frame(names=SNPs.extracted.names.raw.3, P=P.extracted.3), file = "genomic_epidemiological_plink_threshold_0_01_features.csv", row.names = FALSE, col.names = TRUE, sep = ",", quote = FALSE)
+
+write.table(SNPs.extracted.names.raw.3, file = "plink_threshold_0_01_features.csv", row.names = FALSE, col.names = TRUE, sep = ",", quote = FALSE)
 
 ###################################
 

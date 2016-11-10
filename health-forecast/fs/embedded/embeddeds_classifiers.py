@@ -198,7 +198,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     print("##### Experiment Info #####")
     print("Dataset type: ", dataset_type)
     print("Sampling: ", sampling)
-    print("Filter FS: ", fs_step_name)
+    print("Embedded FS: ", fs_step_name)
     print("Classifier: ", classifier_step_name)
     print()
 
@@ -290,7 +290,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
     if sampling_timing == "sampling_before_fs":
         if sampling == "raw":
-            pipe = Pipeline([(fs_step_name, filter)])
+            pipe = Pipeline([(fs_step_name, embedded)])
         else:
             if sampling == "down_sample":
                 pipe = Pipeline([(sampling, RandomUnderSampler(random_state=sampling_seeds[0]))])
@@ -299,9 +299,9 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
             elif sampling == "smote_sample":
                 pipe = Pipeline([(sampling, SMOTE(n_jobs=-1, random_state=sampling_seeds[2]))])
 
-            pipe.steps.append((fs_step_name, filter))
+            pipe.steps.append((fs_step_name, embedded))
     elif sampling_timing == "sampling_after_fs":
-        pipe = Pipeline([(fs_step_name, filter)])
+        pipe = Pipeline([(fs_step_name, embedded)])
 
         if sampling == "down_sample":
             pipe.steps.append((sampling, RandomUnderSampler(random_state=sampling_seeds[0])))
@@ -339,17 +339,17 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
 if __name__ == '__main__':
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/'
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
     disease = "lung_cancer"
     chromosome = "chr12"
 
-    # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
 
-    sampling_timings = ["sampling_before_fs"]
+    sampling_timings = ["sampling_after_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
-    fs_step_names = ["rlr_l2"]
-    classifier_step_names = ["linear_svm"]
+    fs_step_names = ["rlr_l1"]
+    classifier_step_names = ["linear_svm", "rf", "knn"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name
