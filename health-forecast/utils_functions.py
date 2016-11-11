@@ -6,7 +6,7 @@ import os
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_recall_fscore_support
 from sklearn.metrics import roc_curve, auc, f1_score, roc_auc_score
-from plot_functions import plot_confusion_matrix, plot_roc, plot_metrics_vs_data
+from plot_functions import plot_confusion_matrix, plot_roc, plot_metrics_vs_data, plot_prob_vs_frequency
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import Imputer
 
@@ -464,13 +464,13 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
 
             if classifier_step_name == "linear_svm":
                 selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
-                    best_estimator.named_steps[classifier_step_name].coef_
+                    best_estimator.named_steps[classifier_step_name].coef_[0, best_estimator.named_steps[fs_step_name].get_support()]
             elif classifier_step_name == "rf":
                 selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
                     best_estimator.named_steps[classifier_step_name].feature_importances_
             elif classifier_step_name == "knn":
                 selected_coefficients[best_estimator.named_steps[fs_step_name].get_support()] = \
-                    best_estimator.named_steps[fs_step_name].estimator_.coef_
+                    best_estimator.named_steps[fs_step_name].estimator_.coef_[0, best_estimator.named_steps[fs_step_name].get_support()]
 
             coefficients[:, i] = selected_coefficients
 
@@ -614,16 +614,18 @@ def impute_missing_values(filename):
     return data
 
 if __name__ == '__main__':
-    # disease = "lung_cancer"
-    # chromosome = "chr12"
-    #
-    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
-    # dataset_type = "genomic"
-    # sampling_timing = "sampling_before_fs"
-    # sampling_type = "up_sample"
-    # fs_type = ("embedded", "rlr_l1")
-    # classifier_type = "knn"
-    #
+    disease = "lung_cancer"
+    chromosome = "chr12"
+
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    dataset_type = "genomic"
+    sampling_timing = "sampling_before_fs"
+    sampling_type = "up_sample"
+    fs_type = ("embedded", "rlr_l1")
+    classifier_type = "knn"
+
+    feature_metrics(main_path, dataset_type, sampling_type, sampling_timing, fs_type[1], classifier_type)
+
     # best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
     #                      sampling_timing + '/' + sampling_type + '/' + dataset_type + '/' + classifier_type + '_results.pkl'
     #
@@ -633,10 +635,20 @@ if __name__ == '__main__':
     #
     # performance_vs_data(main_path, dataset_type, best_estimator)
 
-    disease = "diabetes"
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/complete_diabetes_genomic_epidemiological.csv'
+    # disease = "diabetes"
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/complete_diabetes_genomic_epidemiological.csv'
+    #
+    # data = impute_missing_values(main_path)
 
-    data = impute_missing_values(main_path)
+    # results = load_object('/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/fs/embedded/'
+    #                       'rlr_l1/classifiers/knn/sampling_after_fs/up_sample/genomic/knn_results.pkl')
+    #
+    # raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_test.csv', delimiter=',')
+    # raw_test_data = raw_test_data[1:, :]
+    #
+    # y_test = raw_test_data[:, 0]
+    #
+    # plot_prob_vs_frequency(results['y_prob'], y_test)
 
     # print("Loading variable names...")
     # print()

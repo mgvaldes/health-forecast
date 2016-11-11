@@ -65,3 +65,25 @@ def plot_metrics_vs_data(cv_scores, test_scores):
     plt.axis('tight')
     plt.legend(loc="upper right")
     plt.show()
+
+
+def plot_prob_vs_frequency(y_prob, y_test):
+    freq_0 = []
+    freq_1 = []
+
+    for i in range(1, len(y_test) + 1):
+        freq_0.append((y_test[:i] == 0).sum())
+        freq_1.append((y_test[:i] == 1).sum())
+
+    plt.figure()
+
+    print(y_prob[:, 1])
+    print(np.sort(y_prob[:, 1][::-1]))
+
+    plt.plot(np.sort(y_prob[:, 1][::-1]), freq_0, color='red', label="TP")
+    plt.plot(np.sort(y_prob[:, 1][::-1]), freq_1, color='blue', label="TN")
+    plt.xlabel('Test value')
+    plt.ylabel('Frequency')
+    plt.axis('tight')
+    plt.legend(loc="upper right")
+    plt.show()

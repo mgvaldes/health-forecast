@@ -27,6 +27,9 @@ def read_results(filename):
 
 
 if __name__ == '__main__':
+    # print(read_results('/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/fs/embedded/'
+    #              'rlr_l1/classifiers/knn/sampling_after_fs/up_sample/genomic/knn_results.pkl'))
+
     sampling_timings = ["sampling_before_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic", "genomic_epidemiological"]
