@@ -624,11 +624,11 @@ if __name__ == '__main__':
     fs_type = ("embedded", "rlr_l1")
     classifier_type = "knn"
 
-    feature_metrics(main_path, dataset_type, sampling_type, sampling_timing, fs_type[1], classifier_type)
+    # feature_metrics(main_path, dataset_type, sampling_type, sampling_timing, fs_type[1], classifier_type)
 
-    # best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
-    #                      sampling_timing + '/' + sampling_type + '/' + dataset_type + '/' + classifier_type + '_results.pkl'
-    #
+    best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
+                         sampling_timing + '/' + sampling_type + '/' + dataset_type + '/' + classifier_type + '_results.pkl'
+
     # results = load_object(best_estimator_dir)
     #
     # best_estimator = results['best_estimator']
@@ -640,15 +640,15 @@ if __name__ == '__main__':
     #
     # data = impute_missing_values(main_path)
 
-    # results = load_object('/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/fs/embedded/'
-    #                       'rlr_l1/classifiers/knn/sampling_after_fs/up_sample/genomic/knn_results.pkl')
-    #
-    # raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_test.csv', delimiter=',')
-    # raw_test_data = raw_test_data[1:, :]
-    #
-    # y_test = raw_test_data[:, 0]
-    #
-    # plot_prob_vs_frequency(results['y_prob'], y_test)
+    results = load_object(best_estimator_dir)
+
+    raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_test.csv', delimiter=',')
+    raw_test_data = raw_test_data[1:, :]
+
+    y_test = raw_test_data[:, 0]
+
+    plot_prob_vs_frequency(results['y_prob'], y_test)
+    # plot_prob_vs_frequency(results['y_prob'])
 
     # print("Loading variable names...")
     # print()

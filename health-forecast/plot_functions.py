@@ -68,22 +68,61 @@ def plot_metrics_vs_data(cv_scores, test_scores):
 
 
 def plot_prob_vs_frequency(y_prob, y_test):
-    freq_0 = []
-    freq_1 = []
+    # def plot_prob_vs_frequency(y_prob):
+    # freq_0 = []
+    # freq_1 = []
+    #
+    # for i in range(1, len(y_test) + 1):
+    #     freq_0.append((y_test[:i] == 0).sum())
+    #     freq_1.append((y_test[:i] == 1).sum())
+    #
+    # plt.figure()
+    #
+    # print(y_prob[:, 1])
+    # print(np.sort(y_prob[:, 1][::-1]))
+    #
+    # plt.plot(np.sort(y_prob[:, 1][::-1]), freq_0, color='red', label="TP")
+    # plt.plot(np.sort(y_prob[:, 1][::-1]), freq_1, color='blue', label="TN")
+    # plt.xlabel('Test value')
+    # plt.ylabel('Frequency')
+    # plt.axis('tight')
+    # plt.legend(loc="upper right")
+    # plt.show()
 
-    for i in range(1, len(y_test) + 1):
-        freq_0.append((y_test[:i] == 0).sum())
-        freq_1.append((y_test[:i] == 1).sum())
+    y_test_and_y_prob = np.zeros((len(y_test), 2))
+    y_test_and_y_prob[:, 0] = y_test
+    y_test_and_y_prob[:, 1] = y_prob[:, 0]
+    print(y_test_and_y_prob)
 
-    plt.figure()
+    sorted_by_y_prob_y_test_and_y_prob = y_test_and_y_prob[np.argsort(y_test_and_y_prob[:, 1])[::-1]]
+    print(sorted_by_y_prob_y_test_and_y_prob)
 
-    print(y_prob[:, 1])
-    print(np.sort(y_prob[:, 1][::-1]))
 
-    plt.plot(np.sort(y_prob[:, 1][::-1]), freq_0, color='red', label="TP")
-    plt.plot(np.sort(y_prob[:, 1][::-1]), freq_1, color='blue', label="TN")
-    plt.xlabel('Test value')
-    plt.ylabel('Frequency')
-    plt.axis('tight')
-    plt.legend(loc="upper right")
-    plt.show()
+
+    # sorted_y_prob = np.sort(y_prob[:, 0])[::-1]
+    # print(sorted_y_prob)
+    # min_prob = min(sorted_y_prob)
+    # max_prob = max(sorted_y_prob)
+    # binwidth = 0.1
+
+    # plt.figure()
+    #
+    # bins = np.arange(0, 1.1, 0.1)
+    # plt.hist(sorted_y_prob, bins)
+
+    # plt.xticks(np.arange(0, 1, 0.1))
+    # plt.xlim([-0.05, 1.05])
+
+    # his = plt.hist(sorted_y_prob)
+
+    # ax = plt.gca()
+    # ax.invert_xaxis()
+
+    # his = np.histogram(y_prob)
+    # fig, ax = plt.subplots()
+    # offset = .5
+    # plt.bar(his[1][1:], his[0], width=1)
+    # ax.set_xticks(his[1][1:] + offset)
+    # ax.set_xticklabels(('1', '2', '3', '4'))
+
+    # plt.show()
