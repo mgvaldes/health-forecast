@@ -3,6 +3,7 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.model_selection import train_test_split
 import csv
 import os
+from utils_functions import iter_loadtxt
 
 ##############################################################################
 # Generate complete dataset with all features, genomic and epidemiologic
@@ -118,82 +119,92 @@ import os
 
 ##############################################################################
 # Read reduced dataset from low variance process and create training/test sets
-reduced_data = np.genfromtxt(os.getcwd() + '/datasets/genomic/genomic_dataset_with_pheno.csv', delimiter=',')
+# reduced_data = np.genfromtxt(os.getcwd() + '/datasets/genomic/genomic_dataset_with_pheno.csv', delimiter=',')
+
+print("Loading data...")
+reduced_data = iter_loadtxt(os.getcwd() + '/datasets/diabetes/D2_vs_ND_without_NAs.csv')
 print(reduced_data.shape)
 
-reduced_data  = reduced_data[1:, :]
-print(reduced_data.shape)
+# reduced_data  = reduced_data[1:, :]
+# print(reduced_data.shape)
 
 reduced_data_n_rows = reduced_data.shape[0]
-print('nrows: ' + str(reduced_data_n_rows))
+print('Rows: ' + str(reduced_data_n_rows))
 
 reduced_data_n_cols = reduced_data.shape[1]
-print('ncols: ' + str(reduced_data_n_cols))
+print('Columns: ' + str(reduced_data_n_cols))
 
-with open(os.getcwd() + '/datasets/genomic/genomic_dataset_with_pheno.csv', 'r') as csvfile:
+with open(os.getcwd() + '/datasets/diabetes/D2_vs_ND_without_NAs.csv', 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     for row in reader:
         variable_names = np.array(list(row))
         break
 
-X = np.zeros((reduced_data_n_rows, (reduced_data_n_cols - 1)))
-X = reduced_data[:, 1:]
+# print("Dividing X and y...")
+# X = np.zeros((reduced_data_n_rows, (reduced_data_n_cols - 1)))
+# X = reduced_data[:, 1:]
+# y = reduced_data[:, 0]
 
-y = reduced_data[:, 0]
+print("Spliting into train and test...")
+# X_train, y_train, X_test, y_test, indexes_train, indexes_test = train_test_split(X, y, range(len(y)), test_size=0.2, random_state=0, stratify=y)
+_, _, _, _, indexes_train, indexes_test = train_test_split(reduced_data[:, 1:], reduced_data[:, 0], range(reduced_data_n_rows), test_size=0.2, random_state=0, stratify=reduced_data[:, 0])
 
-X_train, X_test, y_train, y_test, indexes_train, indexes_test = train_test_split(X, y, range(len(y)), test_size=0.2, random_state=0, stratify=y)
-
-
-# train_dataset = np.zeros((X_train.shape[0], reduced_data_n_cols))
+train_dataset = np.zeros((len(indexes_train), reduced_data_n_cols))
 # train_dataset[:, 0] = y_train
 # train_dataset[:, 1:] = X_train
-#
-# test_dataset = np.zeros((X_test.shape[0], reduced_data_n_cols))
+train_dataset[:, 0] = reduced_data[indexes_train, 0]
+train_dataset[:, 1:] = reduced_data[indexes_train, 1:]
+
+test_dataset = np.zeros((len(indexes_test), reduced_data_n_cols))
 # test_dataset[:, 0] = y_test
 # test_dataset[:, 1:] = X_test
+test_dataset[:, 0] = reduced_data[indexes_test, 0]
+test_dataset[:, 1:] = reduced_data[indexes_test, 1:]
+
+print("Saving train dataset...")
+with open(os.getcwd() + '/datasets/diabetes/genomic_epidemiological/raw_train.csv', 'w') as f:
+    w = csv.writer(f)
+    w.writerow(variable_names)
+    w.writerows(train_dataset)
+
+print("Saving test dataset...")
+with open(os.getcwd() + '/datasets/diabetes/genomic_epidemiological/raw_test.csv', 'w') as f:
+    w = csv.writer(f)
+    w.writerow(variable_names)
+    w.writerows(test_dataset)
+
+
+# num_experiments = 10
+# seeds = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 #
-# with open(os.getcwd() + '/datasets/genomic_epidemiological/raw_train.csv', 'w') as f:
-#     w = csv.writer(f)
-#     w.writerow(variable_names)
-#     w.writerows(train_dataset)
+# experiments = dict()
 #
-# with open(os.getcwd() + '/datasets/genomic_epidemiological/raw_test.csv', 'w') as f:
-#     w = csv.writer(f)
-#     w.writerow(variable_names)
-#     w.writerows(test_dataset)
-
-
-num_experiments = 10
-seeds = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-
-experiments = dict()
-
-for i in range(0, num_experiments):
-    seed = seeds[i]
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed, stratify=y)
-
-    train_dataset = np.zeros((X_train.shape[0], reduced_data_n_cols))
-    train_dataset[:, 0] = y_train
-    train_dataset[:, 1:] = X_train
-
-    test_dataset = np.zeros((X_test.shape[0], reduced_data_n_cols))
-    test_dataset[:, 0] = y_test
-    test_dataset[:, 1:] = X_test
-
-    train_dataset_name = os.getcwd() + '/datasets/genomic/raw/experiment_' + str(i) + '_train.csv'
-
-    with open(train_dataset_name, 'w') as f:
-        w = csv.writer(f)
-        w.writerow(variable_names)
-        w.writerows(train_dataset)
-
-    test_dataset_name = os.getcwd() + '/datasets/genomic/raw/experiment_' + str(i) + '_test.csv'
-
-    with open(test_dataset_name, 'w') as f:
-        w = csv.writer(f)
-        w.writerow(variable_names)
-        w.writerows(test_dataset)
+# for i in range(0, num_experiments):
+#     seed = seeds[i]
+#
+#     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed, stratify=y)
+#
+#     train_dataset = np.zeros((X_train.shape[0], reduced_data_n_cols))
+#     train_dataset[:, 0] = y_train
+#     train_dataset[:, 1:] = X_train
+#
+#     test_dataset = np.zeros((X_test.shape[0], reduced_data_n_cols))
+#     test_dataset[:, 0] = y_test
+#     test_dataset[:, 1:] = X_test
+#
+#     train_dataset_name = os.getcwd() + '/datasets/genomic/raw/experiment_' + str(i) + '_train.csv'
+#
+#     with open(train_dataset_name, 'w') as f:
+#         w = csv.writer(f)
+#         w.writerow(variable_names)
+#         w.writerows(train_dataset)
+#
+#     test_dataset_name = os.getcwd() + '/datasets/genomic/raw/experiment_' + str(i) + '_test.csv'
+#
+#     with open(test_dataset_name, 'w') as f:
+#         w = csv.writer(f)
+#         w.writerow(variable_names)
+#         w.writerows(test_dataset)
 
 
 
