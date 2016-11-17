@@ -1,17 +1,20 @@
 import numpy as np
 import csv
 import os
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
 from sklearn.feature_selection import f_classif, SelectPercentile
 from sklearn.svm import SVC
-from utils_functions import performance_metrics, feature_metrics
-from imblearn.pipeline import Pipeline
+from utils_functions import performance_metrics, feature_metrics, iter_loadtxt, impute_missing_values, scale_values
+from imblearn.pipeline import Pipeline, make_pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 import math
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler, SMOTE
+from sklearn.preprocessing import FunctionTransformer
+# from CustomImputer import CustomImputer
+# from CustomStandardScaler import CustomStandardScaler
 
 
 # def stability(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
@@ -104,9 +107,10 @@ from imblearn.over_sampling import RandomOverSampler, SMOTE
 #         w.writerows(features_info)
 
 
-def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
+def general_performance(main_path, dataset_type, dataset_sub_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
     print("##### Experiment Info #####")
     print("Dataset type: ", dataset_type)
+    print("Dataset sub type: ", dataset_sub_type)
     print("Sampling: ", sampling)
     print("Filter FS: ", fs_step_name)
     print("Classifier: ", classifier_step_name)
@@ -115,7 +119,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     print("Loading variable names...")
     print()
     # with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
-    with open(main_path + dataset_type + '/raw/raw_train.csv', 'r') as csvfile:
+    with open(main_path + dataset_type + '/' + dataset_sub_type + '/raw_train.csv', 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
             variable_names = np.array(list(row))
@@ -140,13 +144,13 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     # X_test = raw_test_data[:, 1:]
     # y_test = raw_test_data[:, 0]
 
-    raw_train_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_train.csv', delimiter=',')
+    raw_train_data = iter_loadtxt(main_path + dataset_type + '/' + dataset_sub_type + '/raw_train.csv')
     raw_train_data = raw_train_data[1:, :]
 
     X_train = raw_train_data[:, 1:]
     y_train = raw_train_data[:, 0]
 
-    raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_test.csv', delimiter=',')
+    raw_test_data = iter_loadtxt(main_path + dataset_type + '/' + dataset_sub_type + '/raw_test.csv')
     raw_test_data = raw_test_data[1:, :]
 
     X_test = raw_test_data[:, 1:]
@@ -156,8 +160,37 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
     param_grid = dict()
 
+    # imputer = CustomImputer(col_splitter=343)
+    # scaler = CustomStandardScaler(col_splitter=343)
+    print(variable_names[342])
+
+    pipe = Pipeline([("imputer", FunctionTransformer(func=impute_missing_values, validate=False, pass_y=False)),
+                     ("scaler", FunctionTransformer(func=scale_values, validate=False, pass_y=False))])
+
+    # param_grid['imputer__kw_args'] = [{"col_splitter": 342}]
+    # param_grid['scaler__kw_args'] = [{"col_splitter": 342}]
+
     if fs_step_name == "anova":
         filter = SelectPercentile(f_classif, percentile=10)
+
+    if sampling_timing == "sampling_before_fs":
+        if sampling == "down_sample":
+            pipe.steps.append((sampling, RandomUnderSampler(random_state=sampling_seeds[0])))
+        elif sampling == "up_sample":
+            pipe.steps.append((sampling, RandomOverSampler(random_state=sampling_seeds[1])))
+        elif sampling == "smote_sample":
+            pipe.steps.append((sampling, SMOTE(n_jobs=-1, random_state=sampling_seeds[2])))
+
+        pipe.steps.append((fs_step_name, filter))
+    elif sampling_timing == "sampling_after_fs":
+        pipe.steps.append((fs_step_name, filter))
+
+        if sampling == "down_sample":
+            pipe.steps.append((sampling, RandomUnderSampler(random_state=sampling_seeds[0])))
+        elif sampling == "up_sample":
+            pipe.steps.append((sampling, RandomOverSampler(random_state=sampling_seeds[1])))
+        elif sampling == "smote_sample":
+            pipe.steps.append((sampling, SMOTE(n_jobs=-1, random_state=sampling_seeds[2])))
 
     if classifier_step_name == "linear_svm":
         C_OPTIONS = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
@@ -182,35 +215,13 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 
         classifier = KNeighborsClassifier(n_jobs=-1)
 
-    if sampling_timing == "sampling_before_fs":
-        if sampling == "raw":
-            pipe = Pipeline([(fs_step_name, filter)])
-        else:
-            if sampling == "down_sample":
-                pipe = Pipeline([(sampling, RandomUnderSampler(random_state=sampling_seeds[0]))])
-            elif sampling == "up_sample":
-                pipe = Pipeline([(sampling, RandomOverSampler(random_state=sampling_seeds[1]))])
-            elif sampling == "smote_sample":
-                pipe = Pipeline([(sampling, SMOTE(n_jobs=-1, random_state=sampling_seeds[2]))])
-
-            pipe.steps.append((fs_step_name, filter))
-    elif sampling_timing == "sampling_after_fs":
-        pipe = Pipeline([(fs_step_name, filter)])
-
-        if sampling == "down_sample":
-            pipe.steps.append((sampling, RandomUnderSampler(random_state=sampling_seeds[0])))
-        elif sampling == "up_sample":
-            pipe.steps.append((sampling, RandomOverSampler(random_state=sampling_seeds[1])))
-        elif sampling == "smote_sample":
-            pipe.steps.append((sampling, SMOTE(n_jobs=-1, random_state=sampling_seeds[2])))
-
     pipe.steps.append((classifier_step_name, classifier))
 
     print("Performing gridsearch...")
     print()
 
     pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
-                                   cv=StratifiedKFold(n_splits=5, random_state=123456))
+                                   cv=StratifiedShuffleSplit(n_splits=10, test_size=0.3, random_state=123456))
     pipe_gridsearch.fit(X_train, y_train)
 
     cv_results = dict()
@@ -238,13 +249,19 @@ if __name__ == '__main__':
 
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
     # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/'
 
-    sampling_timings = ["sampling_after_fs"]
-    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    dataset_types = ["genomic", "genomic_epidemiological"]
+    # sampling_timings = ["sampling_before_fs", "sampling_after_fs"]
+    sampling_timings = ["sampling_before_fs"]
+    # sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    sampling_types = ["raw"]
+    # dataset_types = ["genomic", "genomic_epidemiological"]
+    dataset_types = ["genomic_epidemiological"]
+    # dataset_sub_types = ["D2_vs_ND", "D2_vs_H", "D2_vs_CD2F", "PD2_vs_CD2W"]
+    dataset_sub_types = ["D2_vs_H"]
     fs_step_names = ["anova"]
-    classifier_step_names = ["linear_svm", "rf", "knn"]
+    # classifier_step_names = ["linear_svm", "rf", "knn"]
+    classifier_step_names = ["linear_svm"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name
@@ -276,5 +293,11 @@ if __name__ == '__main__':
                         if not os.path.exists(dataset_dir):
                             os.makedirs(dataset_dir)
 
-                        general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
-                        feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
+                        for dataset_sub_type in dataset_sub_types:
+                            dataset_sub_type_dir = dataset_dir + '/' + dataset_sub_type
+
+                            if not os.path.exists(dataset_sub_type_dir):
+                                os.makedirs(dataset_sub_type_dir)
+
+                            general_performance(main_path, dataset_type, dataset_sub_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
+                            # feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)

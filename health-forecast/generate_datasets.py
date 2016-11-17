@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 import csv
 import os
 from utils_functions import iter_loadtxt
+from sklearn.model_selection import StratifiedShuffleSplit
 
 ##############################################################################
 # Generate complete dataset with all features, genomic and epidemiologic
@@ -121,8 +122,10 @@ from utils_functions import iter_loadtxt
 # Read reduced dataset from low variance process and create training/test sets
 # reduced_data = np.genfromtxt(os.getcwd() + '/datasets/genomic/genomic_dataset_with_pheno.csv', delimiter=',')
 
+dataset_type = "PD2_vs_CD2W"
+
 print("Loading data...")
-reduced_data = iter_loadtxt(os.getcwd() + '/datasets/diabetes/D2_vs_ND_without_NAs.csv')
+reduced_data = iter_loadtxt(os.getcwd() + '/datasets/diabetes/genomic_epidemiological/' + dataset_type + '/' + dataset_type + '.csv')
 print(reduced_data.shape)
 
 # reduced_data  = reduced_data[1:, :]
@@ -134,7 +137,7 @@ print('Rows: ' + str(reduced_data_n_rows))
 reduced_data_n_cols = reduced_data.shape[1]
 print('Columns: ' + str(reduced_data_n_cols))
 
-with open(os.getcwd() + '/datasets/diabetes/D2_vs_ND_without_NAs.csv', 'r') as csvfile:
+with open(os.getcwd() + '/datasets/diabetes/genomic_epidemiological/' + dataset_type + '/' + dataset_type + '.csv', 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     for row in reader:
         variable_names = np.array(list(row))
@@ -147,31 +150,34 @@ with open(os.getcwd() + '/datasets/diabetes/D2_vs_ND_without_NAs.csv', 'r') as c
 
 print("Spliting into train and test...")
 # X_train, y_train, X_test, y_test, indexes_train, indexes_test = train_test_split(X, y, range(len(y)), test_size=0.2, random_state=0, stratify=y)
-_, _, _, _, indexes_train, indexes_test = train_test_split(reduced_data[:, 1:], reduced_data[:, 0], range(reduced_data_n_rows), test_size=0.2, random_state=0, stratify=reduced_data[:, 0])
+# _, _, _, _, indexes_train, indexes_test = train_test_split(reduced_data[:, 1:], reduced_data[:, 0], range(reduced_data_n_rows), test_size=0.2, random_state=0, stratify=reduced_data[:, 0])
+train_indexes, test_indexes = list(StratifiedShuffleSplit(n_splits=1, test_size=0.3, random_state=6547891).split(reduced_data[:, 1:], reduced_data[:, 0]))[0]
 
-train_dataset = np.zeros((len(indexes_train), reduced_data_n_cols))
-# train_dataset[:, 0] = y_train
-# train_dataset[:, 1:] = X_train
-train_dataset[:, 0] = reduced_data[indexes_train, 0]
-train_dataset[:, 1:] = reduced_data[indexes_train, 1:]
-
-test_dataset = np.zeros((len(indexes_test), reduced_data_n_cols))
-# test_dataset[:, 0] = y_test
-# test_dataset[:, 1:] = X_test
-test_dataset[:, 0] = reduced_data[indexes_test, 0]
-test_dataset[:, 1:] = reduced_data[indexes_test, 1:]
+# print("Creating training dataset...")
+# train_dataset = np.zeros((len(indexes_train), reduced_data_n_cols))
+# # train_dataset[:, 0] = y_train
+# # train_dataset[:, 1:] = X_train
+# train_dataset[:, 0] = reduced_data[indexes_train, 0]
+# train_dataset[:, 1:] = reduced_data[indexes_train, 1:]
+#
+# print("Creating test dataset...")
+# test_dataset = np.zeros((len(indexes_test), reduced_data_n_cols))
+# # test_dataset[:, 0] = y_test
+# # test_dataset[:, 1:] = X_test
+# test_dataset[:, 0] = reduced_data[indexes_test, 0]
+# test_dataset[:, 1:] = reduced_data[indexes_test, 1:]
 
 print("Saving train dataset...")
-with open(os.getcwd() + '/datasets/diabetes/genomic_epidemiological/raw_train.csv', 'w') as f:
+with open(os.getcwd() + '/datasets/diabetes/genomic_epidemiological/' + dataset_type + '/raw_train.csv', 'w') as f:
     w = csv.writer(f)
     w.writerow(variable_names)
-    w.writerows(train_dataset)
+    w.writerows(reduced_data[train_indexes, :])
 
 print("Saving test dataset...")
-with open(os.getcwd() + '/datasets/diabetes/genomic_epidemiological/raw_test.csv', 'w') as f:
+with open(os.getcwd() + '/datasets/diabetes/genomic_epidemiological/' + dataset_type + '/raw_test.csv', 'w') as f:
     w = csv.writer(f)
     w.writerow(variable_names)
-    w.writerows(test_dataset)
+    w.writerows(reduced_data[test_indexes, :])
 
 
 # num_experiments = 10

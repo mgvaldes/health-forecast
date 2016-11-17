@@ -9,6 +9,7 @@ from sklearn.metrics import roc_curve, auc, f1_score, roc_auc_score
 from plot_functions import plot_confusion_matrix, plot_roc, plot_metrics_vs_data, plot_prob_vs_frequency
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import Imputer
+from sklearn.preprocessing import StandardScaler
 
 
 def save_object(obj, filename):
@@ -600,18 +601,55 @@ def iter_loadtxt(filename, delimiter=',', skiprows=1, dtype=float):
     return data
 
 
-def impute_missing_values(filename):
-    print("Loading data...")
-    print()
-    data = iter_loadtxt(filename)
+# def impute_missing_values(filename):
+#     print("Loading data...")
+#     print()
+#     data = iter_loadtxt(filename)
+#
+#     imputer = Imputer(missing_values=-1, strategy="mean", axis=0, verbose=20)
+#
+#     print("Imputing values to missing data...")
+#     print()
+#     imputer.fit_transform(data)
+#
+#     return data
 
-    imputer = Imputer(missing_values=-1, strategy="mean", axis=0, verbose=20)
+def impute_missing_values(X):
+    col_splitter = 342
 
-    print("Imputing values to missing data...")
-    print()
-    imputer.fit_transform(data)
+    imputer = Imputer(missing_values=-1, strategy="mean", axis=0)
 
-    return data
+    cols_with_NA = np.apply_along_axis(lambda x: np.count_nonzero(x < 0), 0, X)
+    cols_with_at_least_one_NA = np.where(cols_with_NA > 0)[0]
+
+    X[:, cols_with_at_least_one_NA] = imputer.fit_transform(X[:, cols_with_at_least_one_NA])
+
+    genom_cols_with_at_least_one_NA = [i for i in cols_with_at_least_one_NA if i >= col_splitter]
+
+    X[:, genom_cols_with_at_least_one_NA] = np.round(X[:, genom_cols_with_at_least_one_NA])
+
+    return X
+
+
+def scale_values(X):
+    col_splitter = 342
+
+    scaler = StandardScaler(copy=True, with_mean=True, with_std=True)
+
+    X[:, 0:col_splitter] = scaler.fit_transform(X[:, 0:col_splitter])
+
+    return X
+
+
+# def scale_values(X, y):
+#     col_splitter = 342
+#
+#     scaler = StandardScaler()
+#
+#     new_X = scaler.fit_transform(X[:, 0:col_splitter])
+#
+#     return np.column_stack((new_X, X[:, col_splitter:X.shape[1]])), y
+
 
 if __name__ == '__main__':
     disease = "lung_cancer"
