@@ -617,7 +617,7 @@ def iter_loadtxt(filename, delimiter=',', skiprows=1, dtype=float):
 def impute_missing_values(X):
     col_splitter = 342
 
-    imputer = Imputer(missing_values=-1, strategy="mean", axis=0)
+    imputer = Imputer(missing_values=-1, strategy="mean", axis=0, copy=False)
 
     cols_with_NA = np.apply_along_axis(lambda x: np.count_nonzero(x < 0), 0, X)
     cols_with_at_least_one_NA = np.where(cols_with_NA > 0)[0]
@@ -634,7 +634,7 @@ def impute_missing_values(X):
 def scale_values(X):
     col_splitter = 342
 
-    scaler = StandardScaler(copy=True, with_mean=True, with_std=True)
+    scaler = StandardScaler(copy=False, with_mean=True, with_std=True)
 
     X[:, 0:col_splitter] = scaler.fit_transform(X[:, 0:col_splitter])
 

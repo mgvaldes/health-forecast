@@ -150,11 +150,15 @@ def general_performance(main_path, dataset_type, dataset_sub_type, sampling, sam
     X_train = raw_train_data[:, 1:]
     y_train = raw_train_data[:, 0]
 
+    print("Training set:", X_train.shape)
+
     raw_test_data = iter_loadtxt(main_path + dataset_type + '/' + dataset_sub_type + '/raw_test.csv')
     raw_test_data = raw_test_data[1:, :]
 
     X_test = raw_test_data[:, 1:]
     y_test = raw_test_data[:, 0]
+
+    print("Test set:", X_test.shape)
 
     experiment_results = dict()
 
@@ -162,7 +166,9 @@ def general_performance(main_path, dataset_type, dataset_sub_type, sampling, sam
 
     # imputer = CustomImputer(col_splitter=343)
     # scaler = CustomStandardScaler(col_splitter=343)
+    print(variable_names[341])
     print(variable_names[342])
+    print()
 
     pipe = Pipeline([("imputer", FunctionTransformer(func=impute_missing_values, validate=False, pass_y=False)),
                      ("scaler", FunctionTransformer(func=scale_values, validate=False, pass_y=False))])
@@ -220,8 +226,9 @@ def general_performance(main_path, dataset_type, dataset_sub_type, sampling, sam
     print("Performing gridsearch...")
     print()
 
-    pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=12, scoring='f1_weighted',
-                                   cv=StratifiedShuffleSplit(n_splits=10, test_size=0.3, random_state=123456))
+    pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=10, scoring='f1_weighted',
+                                   cv=StratifiedShuffleSplit(n_splits=10, test_size=0.3, random_state=123456),
+                                   verbose=10)
     pipe_gridsearch.fit(X_train, y_train)
 
     cv_results = dict()
@@ -253,15 +260,15 @@ if __name__ == '__main__':
 
     # sampling_timings = ["sampling_before_fs", "sampling_after_fs"]
     sampling_timings = ["sampling_before_fs"]
-    # sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    sampling_types = ["raw"]
+    sampling_types = ["down_sample", "up_sample", "smote_sample"]
+    # sampling_types = ["raw"]
     # dataset_types = ["genomic", "genomic_epidemiological"]
     dataset_types = ["genomic_epidemiological"]
     # dataset_sub_types = ["D2_vs_ND", "D2_vs_H", "D2_vs_CD2F", "PD2_vs_CD2W"]
-    dataset_sub_types = ["D2_vs_H"]
+    dataset_sub_types = ["PD2_vs_CD2W"]
     fs_step_names = ["anova"]
-    # classifier_step_names = ["linear_svm", "rf", "knn"]
-    classifier_step_names = ["linear_svm"]
+    classifier_step_names = ["linear_svm", "rf", "knn"]
+    # classifier_step_names = ["knn"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name
