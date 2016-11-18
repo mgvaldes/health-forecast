@@ -31,7 +31,7 @@ def load_dict(filename):
 
 
 def performance_metrics(experiment_results, best_estimator, fs_step_name, classifier_step_name, X_train, y_train, X_test,
-                        y_test, dataset_type, variable_names, sampling, sampling_timing):
+                        y_test, dataset_type, variable_names, sampling, sampling_timing, dataset_subtype):
     experiment_results['best_estimator'] = best_estimator
 
     cv_score = np.mean(cross_val_score(best_estimator, X_train, y_train, n_jobs=12, cv=StratifiedKFold(n_splits=5, random_state=789012), scoring='f1_weighted'))
@@ -83,7 +83,8 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     print(classifier_confusion_matrix)
     print()
 
-    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + '/' + sampling + '/' + dataset_type
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + \
+                        sampling_timing + '/' + '/' + sampling + '/' + dataset_type + '/' + dataset_subtype
 
     plot_confusion_matrix(classifier_confusion_matrix, classes=["Positive", "Negative"],
                           filename=result_files_path + '/confusion_matrix.png')
@@ -615,7 +616,7 @@ def iter_loadtxt(filename, delimiter=',', skiprows=1, dtype=float):
 #     return data
 
 def impute_missing_values(X):
-    col_splitter = 342
+    # col_splitter = 342
 
     imputer = Imputer(missing_values=-1, strategy="mean", axis=0)
 
@@ -624,9 +625,10 @@ def impute_missing_values(X):
 
     X[:, cols_with_at_least_one_NA] = imputer.fit_transform(X[:, cols_with_at_least_one_NA])
 
-    genom_cols_with_at_least_one_NA = [i for i in cols_with_at_least_one_NA if i >= col_splitter]
+    # genom_cols_with_at_least_one_NA = [i for i in cols_with_at_least_one_NA if i >= col_splitter]
 
-    X[:, genom_cols_with_at_least_one_NA] = np.round(X[:, genom_cols_with_at_least_one_NA])
+    # X[:, genom_cols_with_at_least_one_NA] = np.round(X[:, genom_cols_with_at_least_one_NA])
+    X[:, cols_with_at_least_one_NA] = np.round(X[:, cols_with_at_least_one_NA])
 
     return X
 
