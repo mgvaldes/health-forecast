@@ -129,7 +129,7 @@ def general_performance(main_path, dataset_type, dataset_sub_type, sampling, sam
 
     sampling_seeds = [123, 456, 789]
 
-    print("Loading experiment data...")
+    print("Loading training experiment data...")
     print()
 
     # raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + sampling + '/raw_train.csv', delimiter=',')
@@ -147,18 +147,11 @@ def general_performance(main_path, dataset_type, dataset_sub_type, sampling, sam
     raw_train_data = iter_loadtxt(main_path + dataset_type + '/' + dataset_sub_type + '/raw_train.csv')
     raw_train_data = raw_train_data[1:, :]
 
-    X_train = raw_train_data[:, 1:]
-    y_train = raw_train_data[:, 0]
+    # X_train = raw_train_data[:, 1:]
+    # y_train = raw_train_data[:, 0]
 
-    print("Training set:", X_train.shape)
-
-    raw_test_data = iter_loadtxt(main_path + dataset_type + '/' + dataset_sub_type + '/raw_test.csv')
-    raw_test_data = raw_test_data[1:, :]
-
-    X_test = raw_test_data[:, 1:]
-    y_test = raw_test_data[:, 0]
-
-    print("Test set:", X_test.shape)
+    print("Training data:", raw_train_data[:, 1:].shape)
+    print()
 
     experiment_results = dict()
 
@@ -166,12 +159,14 @@ def general_performance(main_path, dataset_type, dataset_sub_type, sampling, sam
 
     # imputer = CustomImputer(col_splitter=343)
     # scaler = CustomStandardScaler(col_splitter=343)
-    print(variable_names[341])
-    print(variable_names[342])
-    print()
+
+    # print(variable_names[341])
+    # print(variable_names[342])
+    # print()
 
     pipe = Pipeline([("imputer", FunctionTransformer(func=impute_missing_values, validate=False, pass_y=False)),
                      ("scaler", FunctionTransformer(func=scale_values, validate=False, pass_y=False))])
+    # ("scaler", FunctionTransformer(func=scale_values, validate=False, pass_y=False))
 
     # param_grid['imputer__kw_args'] = [{"col_splitter": 342}]
     # param_grid['scaler__kw_args'] = [{"col_splitter": 342}]
@@ -226,10 +221,10 @@ def general_performance(main_path, dataset_type, dataset_sub_type, sampling, sam
     print("Performing gridsearch...")
     print()
 
-    pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=10, scoring='f1_weighted',
-                                   cv=StratifiedShuffleSplit(n_splits=10, test_size=0.3, random_state=123456),
-                                   verbose=10)
-    pipe_gridsearch.fit(X_train, y_train)
+    pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1, scoring='f1_weighted',
+                                   cv=StratifiedKFold(n_splits=10, random_state=123456), verbose=15)
+    # StratifiedShuffleSplit(n_splits=10, test_size=0.3, random_state=123456)
+    pipe_gridsearch.fit(raw_train_data[:, 342:], raw_train_data[:, 0])
 
     cv_results = dict()
     cv_results['mean_test_score'] = pipe_gridsearch.cv_results_['mean_test_score']
@@ -245,8 +240,21 @@ def general_performance(main_path, dataset_type, dataset_sub_type, sampling, sam
     print(pipe_gridsearch.best_params_)
     print()
 
-    performance_metrics(experiment_results, pipe_gridsearch.best_estimator_, fs_step_name, classifier_step_name, X_train,
-                        y_train, X_test, y_test, dataset_type, variable_names, sampling, sampling_timing)
+    print("Loading test experiment data...")
+    print()
+
+    raw_test_data = iter_loadtxt(main_path + dataset_type + '/' + dataset_sub_type + '/raw_test.csv')
+    raw_test_data = raw_test_data[1:, :]
+
+    # X_test = raw_test_data[:, 1:]
+    # y_test = raw_test_data[:, 0]
+
+    print("Test data:", raw_test_data[:, 1:].shape)
+    print()
+
+    performance_metrics(experiment_results, pipe_gridsearch.best_estimator_, fs_step_name, classifier_step_name,
+                        raw_train_data[:, 342:], raw_train_data[:, 0], raw_test_data[:, 342:], raw_test_data[:, 0],
+                        dataset_type, variable_names, sampling, sampling_timing, dataset_sub_type)
 
 
 if __name__ == '__main__':
@@ -256,19 +264,20 @@ if __name__ == '__main__':
 
     # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
     # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/'
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/'
+    main_path = '/home/aegle//health-forecast-project/health-forecast/datasets/' + disease + '/'
 
     # sampling_timings = ["sampling_before_fs", "sampling_after_fs"]
     sampling_timings = ["sampling_before_fs"]
-    sampling_types = ["down_sample", "up_sample", "smote_sample"]
-    # sampling_types = ["raw"]
+    # sampling_types = ["down_sample", "up_sample", "smote_sample"]
+    sampling_types = ["raw"]
     # dataset_types = ["genomic", "genomic_epidemiological"]
     dataset_types = ["genomic_epidemiological"]
     # dataset_sub_types = ["D2_vs_ND", "D2_vs_H", "D2_vs_CD2F", "PD2_vs_CD2W"]
-    dataset_sub_types = ["PD2_vs_CD2W"]
+    dataset_sub_types = ["D2_vs_H"]
     fs_step_names = ["anova"]
-    classifier_step_names = ["linear_svm", "rf", "knn"]
-    # classifier_step_names = ["knn"]
+    # classifier_step_names = ["linear_svm", "rf", "knn"]
+    classifier_step_names = ["linear_svm"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name
