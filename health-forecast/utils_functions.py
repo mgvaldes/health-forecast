@@ -602,6 +602,29 @@ def iter_loadtxt(filename, delimiter=',', skiprows=1, dtype=float):
     return data
 
 
+def iter_loadtxt2(filename, delimiter=',', skiprows=1, skipcols=342, dtype=np.uint):
+    with open(filename, 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            variable_names = np.array(list(row))
+            break
+
+    def iter_func():
+        with open(filename, 'r') as infile:
+            for _ in range(skiprows):
+                next(infile)
+            for line in infile:
+                line = line.rstrip().split(delimiter)
+                for i in range(len(line)):
+                    if (i == 0) or (i > skipcols):
+                        yield dtype(float(line[i]))
+        iter_loadtxt.rowlength = len(line) - skipcols
+
+    data = np.fromiter(iter_func(), dtype=dtype)
+    data = data.reshape((-1, iter_loadtxt.rowlength))
+    return data
+
+
 # def impute_missing_values(filename):
 #     print("Loading data...")
 #     print()
@@ -615,20 +638,34 @@ def iter_loadtxt(filename, delimiter=',', skiprows=1, dtype=float):
 #
 #     return data
 
+def impute_missing_values2(X):
+    imputer = Imputer(missing_values=-1, strategy="mean", axis=0, copy=False)
+
+    cols_with_NA = np.apply_along_axis(lambda x: np.count_nonzero(x < 0), 0, X)
+    cols_with_at_least_one_NA = np.where(cols_with_NA > 0)[0]
+
+    if (len(cols_with_at_least_one_NA) > 0):
+        X[:, cols_with_at_least_one_NA] = imputer.fit_transform(X[:, cols_with_at_least_one_NA])
+
+        X[:, cols_with_at_least_one_NA] = np.round(X[:, cols_with_at_least_one_NA])
+
+    return X
+
 def impute_missing_values(X):
-    # col_splitter = 342
+    col_splitter = 342
 
     imputer = Imputer(missing_values=-1, strategy="mean", axis=0, copy=False)
 
     cols_with_NA = np.apply_along_axis(lambda x: np.count_nonzero(x < 0), 0, X)
     cols_with_at_least_one_NA = np.where(cols_with_NA > 0)[0]
 
-    X[:, cols_with_at_least_one_NA] = imputer.fit_transform(X[:, cols_with_at_least_one_NA])
+    if (len(cols_with_at_least_one_NA) > 0):
+        X[:, cols_with_at_least_one_NA] = imputer.fit_transform(X[:, cols_with_at_least_one_NA])
 
-    # genom_cols_with_at_least_one_NA = [i for i in cols_with_at_least_one_NA if i >= col_splitter]
+        genom_cols_with_at_least_one_NA = [i for i in cols_with_at_least_one_NA if i >= col_splitter]
 
-    # X[:, genom_cols_with_at_least_one_NA] = np.round(X[:, genom_cols_with_at_least_one_NA])
-    X[:, cols_with_at_least_one_NA] = np.round(X[:, cols_with_at_least_one_NA])
+        X[:, genom_cols_with_at_least_one_NA] = np.round(X[:, genom_cols_with_at_least_one_NA])
+        X[:, cols_with_at_least_one_NA] = np.round(X[:, cols_with_at_least_one_NA])
 
     return X
 
