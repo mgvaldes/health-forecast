@@ -122,7 +122,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 # Read reduced dataset from low variance process and create training/test sets
 # reduced_data = np.genfromtxt(os.getcwd() + '/datasets/genomic/genomic_dataset_with_pheno.csv', delimiter=',')
 
-dataset_type = "D2_vs_H"
+dataset_type = "CD2W_vs_CD2F"
 
 print("Loading data...")
 reduced_data = iter_loadtxt(os.getcwd() + '/datasets/diabetes/genomic_epidemiological/' + dataset_type + '/' + dataset_type + '.csv')
