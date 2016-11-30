@@ -32,7 +32,7 @@ def load_dict(filename):
 
 
 def performance_metrics(experiment_results, best_estimator, fs_step_name, classifier_step_name, X_train, y_train, X_test,
-                        y_test, dataset_type, variable_names, sampling, sampling_timing, dataset_subtype):
+                        y_test, dataset_type, variable_names, sampling, sampling_timing):
     experiment_results['best_estimator'] = best_estimator
 
     cv_score = np.mean(cross_val_score(best_estimator, X_train, y_train, n_jobs=-1, cv=StratifiedKFold(n_splits=5, random_state=789012), scoring='f1_weighted'))
@@ -184,6 +184,12 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     print(neg_auc)
     print()
 
+    msk1 = np.repeat(False, len(variable_names))
+    msk1[best_estimator.named_steps["variance"].get_support()] = \
+    best_estimator.named_steps[fs_step_name].get_support()
+
+    msk2 = np.logical_and(best_estimator.named_steps["variance"].get_support(), msk1)
+
     if classifier_step_name == "linear_svm":
         save_object(experiment_results, result_files_path + '/' + classifier_step_name + '_results.pkl')
 
@@ -193,7 +199,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
         features_info['names'] = variable_names
 
         coefficients = np.zeros(X_train.shape[1])
-        coefficients[best_estimator.named_steps["variance"].get_support()][best_estimator.named_steps[fs_step_name].get_support()] = np.absolute(best_estimator.named_steps[classifier_step_name].coef_)
+        coefficients[msk2] = np.absolute(best_estimator.named_steps[classifier_step_name].coef_[0, :])
 
         features_info['linear SVM coefficients'] = coefficients
 
@@ -210,7 +216,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
         features_info['names'] = variable_names
 
         importances = np.zeros(X_train.shape[1])
-        importances[best_estimator.named_steps["variance"].get_support()][best_estimator.named_steps[fs_step_name].get_support()] = best_estimator.named_steps[classifier_step_name].feature_importances_
+        importances[msk2] = best_estimator.named_steps[classifier_step_name].feature_importances_
 
         features_info['RF importances'] = importances
 
@@ -553,7 +559,7 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
 
     variable_names = variable_names[1:]
 
-    num_experiments = 100
+    num_experiments = 50
     feature_ranking = np.zeros((len(variable_names), num_experiments))
     coefficients = np.zeros((len(variable_names), num_experiments))
 
@@ -579,8 +585,14 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
         print()
         best_estimator.fit(X_train, y_train)
 
+        msk1 = np.repeat(False, len(variable_names))
+        msk1[best_estimator.named_steps["variance"].get_support()] = best_estimator.named_steps[
+            fs_step_name].get_support()
+
+        msk2 = np.logical_and(best_estimator.named_steps["variance"].get_support(), msk1)
+
         selected_features = np.zeros(X_train.shape[1])
-        selected_features[best_estimator.named_steps["variance"].get_support()][best_estimator.named_steps[fs_step_name].get_support()] = 1
+        selected_features[msk2] = 1
 
         feature_ranking[:, i] = selected_features
 
@@ -588,14 +600,14 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
             selected_coefficients = np.zeros(X_train.shape[1])
 
             if classifier_step_name == "linear_svm":
-                selected_coefficients[best_estimator.named_steps["variance"].get_support()][best_estimator.named_steps[fs_step_name].get_support()] = \
+                selected_coefficients[msk2] = \
                     best_estimator.named_steps[classifier_step_name].coef_[0, :]
             elif classifier_step_name == "rf":
-                selected_coefficients[best_estimator.named_steps["variance"].get_support()][best_estimator.named_steps[fs_step_name].get_support()] = \
+                selected_coefficients[msk2] = \
                     best_estimator.named_steps[classifier_step_name].feature_importances_
             elif classifier_step_name == "knn":
-                selected_coefficients[best_estimator.named_steps["variance"].get_support()][best_estimator.named_steps[fs_step_name].get_support()] = \
-                    best_estimator.named_steps[fs_step_name].estimator_.coef_[0, :]
+                selected_coefficients[msk2] = \
+                    best_estimator.named_steps[fs_step_name].estimator_.coef_[0, best_estimator.named_steps[fs_step_name].get_support()]
 
             coefficients[:, i] = selected_coefficients
 
@@ -649,10 +661,11 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
         header = list(['names', 'stability'])
 
         if classifier_step_name != "knn" or (classifier_step_name == "knn" and fs_step_name == "rlr_l1"):
-            header.append(list([mean_name, abs_mean_name, scaled_name]))
+            header += list([mean_name, abs_mean_name, scaled_name])
 
         w.writerow(header)
         w.writerows(features_info)
+
 
 def performance_vs_data(main_path, dataset_type, best_estimator):
     print("Loading data...")
@@ -772,6 +785,7 @@ def impute_missing_values2(X):
         X[:, cols_with_at_least_one_NA] = np.round(X[:, cols_with_at_least_one_NA])
 
     return X
+
 
 def impute_missing_values(X):
     col_splitter = 342

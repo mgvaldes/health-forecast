@@ -234,7 +234,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     print()
 
     performance_metrics(experiment_results, pipe_gridsearch.best_estimator_, fs_step_name, classifier_step_name, X_train,
-                        y_train, X_test, y_test, dataset_type, variable_names, sampling, sampling_timing, None)
+                        y_train, X_test, y_test, dataset_type, variable_names, sampling, sampling_timing)
 
 
 if __name__ == '__main__':
@@ -245,14 +245,13 @@ if __name__ == '__main__':
     main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
 
     # sampling_timings = ["sampling_before_fs", "sampling_after_fs"]
-    sampling_timings = ["sampling_before_fs"]
-    # sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    sampling_types = ["smote_sample"]
+    sampling_timings = ["sampling_after_fs"]
+    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    # sampling_types = ["smote_sample"]
     # dataset_types = ["genomic", "genomic_epidemiological"]
     dataset_types = ["genomic_epidemiological"]
     fs_step_names = ["anova"]
-    # classifier_step_names = ["linear_svm", "rf", "knn"]
-    classifier_step_names = ["linear_svm"]
+    classifier_step_names = ["linear_svm", "rf", "knn"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name
