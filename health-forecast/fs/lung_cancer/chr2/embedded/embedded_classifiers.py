@@ -154,7 +154,7 @@ if __name__ == '__main__':
     # sampling_types = ["up_sample"]
     dataset_types = ["genomic_epidemiological"]
     fs_step_names = ["rlr_l1"]
-    classifier_step_names = ["linear_svm", "rf"]
+    classifier_step_names = ["linear_svm", "rf", "knn"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name
