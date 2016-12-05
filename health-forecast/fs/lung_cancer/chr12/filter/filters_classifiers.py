@@ -144,12 +144,13 @@ if __name__ == '__main__':
 
     # sampling_timings = ["sampling_before_fs", "sampling_after_fs"]
     sampling_timings = ["sampling_after_fs"]
-    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
-    # sampling_types = ["smote_sample"]
+    # sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    sampling_types = ["raw"]
     # dataset_types = ["genomic", "genomic_epidemiological"]
     dataset_types = ["genomic_epidemiological"]
     fs_step_names = ["anova"]
-    classifier_step_names = ["linear_svm", "rf", "knn"]
+    # classifier_step_names = ["linear_svm", "rf", "knn"]
+    classifier_step_names = ["linear_svm"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name
