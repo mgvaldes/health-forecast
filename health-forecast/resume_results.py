@@ -36,7 +36,7 @@ if __name__ == '__main__':
     fs_types = [("filter", "anova"), ("wrapper", "rfe_lr"), ("embedded", "rlr_l1")]
     classifier_types = ["linear_svm", "rf", "knn"]
     disease = "lung_cancer"
-    chromosome = "chr2"
+    chromosome = "chr12"
 
     for dataset_type in dataset_types:
         resume_results = np.zeros(0, dtype=('a50, a50, a50, a50, float64, float64, float64, float64, float64, float64, float64, '

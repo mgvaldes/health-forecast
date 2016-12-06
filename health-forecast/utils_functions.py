@@ -11,11 +11,8 @@ from plot_functions import plot_confusion_matrix, plot_roc, plot_metrics_vs_data
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import Imputer
 from sklearn.preprocessing import StandardScaler
-<<<<<<< HEAD
 from sklearn.feature_selection import VarianceThreshold
-=======
 from sklearn.utils import resample
->>>>>>> 3a2b5493ac9f12cda6ebda965a83fe5a19b066ef
 
 
 def save_object(obj, filename):
@@ -204,11 +201,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
         features_info['names'] = variable_names
 
         coefficients = np.zeros(X_train.shape[1])
-<<<<<<< HEAD
-        coefficients[best_estimator.named_steps["variance"].get_support()][best_estimator.named_steps[fs_step_name].get_support()] = np.absolute(best_estimator.named_steps[classifier_step_name].coef_)
-=======
         coefficients[msk2] = np.absolute(best_estimator.named_steps[classifier_step_name].coef_[0, :])
->>>>>>> 3a2b5493ac9f12cda6ebda965a83fe5a19b066ef
 
         features_info['linear SVM coefficients'] = coefficients
 
@@ -225,11 +218,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
         features_info['names'] = variable_names
 
         importances = np.zeros(X_train.shape[1])
-<<<<<<< HEAD
-        importances[best_estimator.named_steps["variance"].get_support()][best_estimator.named_steps[fs_step_name].get_support()] = best_estimator.named_steps[classifier_step_name].feature_importances_
-=======
         importances[msk2] = best_estimator.named_steps[classifier_step_name].feature_importances_
->>>>>>> 3a2b5493ac9f12cda6ebda965a83fe5a19b066ef
 
         features_info['RF importances'] = importances
 
