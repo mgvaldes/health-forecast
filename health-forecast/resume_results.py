@@ -28,15 +28,15 @@ def read_results(filename):
 
 if __name__ == '__main__':
     # print(read_results('/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/fs/embedded/'
-    #              'rlr_l1/classifiers/knn/sampling_after_fs/up_sample/genomic/knn_results.pkl'))
+    #              'rlr_l1/classifiers/knn/sampling_after_fs_old/up_sample/genomic/knn_results.pkl'))
 
-    sampling_timings = ["sampling_after_fs"]
+    sampling_timings = ["sampling_after_fs_old"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
     dataset_types = ["genomic_epidemiological"]
     fs_types = [("filter", "anova"), ("wrapper", "rfe_lr"), ("embedded", "rlr_l1")]
     classifier_types = ["linear_svm", "rf", "knn"]
     disease = "lung_cancer"
-    chromosome = "chr2"
+    chromosome = "chr7"
 
     for dataset_type in dataset_types:
         resume_results = np.zeros(0, dtype=('a50, a50, a50, a50, float64, float64, float64, float64, float64, float64, float64, '

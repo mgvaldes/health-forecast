@@ -576,7 +576,7 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
         print("Classifier: ", classifier_step_name)
         print()
 
-        experiment_data = resample(raw_train_data, replace=False, random_state=i)
+        experiment_data = resample(raw_train_data, replace=True, random_state=i)
 
         X_train = experiment_data[:, 1:]
         y_train = experiment_data[:, 0]
@@ -586,8 +586,8 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
         best_estimator.fit(X_train, y_train)
 
         msk1 = np.repeat(False, len(variable_names))
-        msk1[best_estimator.named_steps["variance"].get_support()] = best_estimator.named_steps[
-            fs_step_name].get_support()
+        msk1[best_estimator.named_steps["variance"].get_support()] = \
+            best_estimator.named_steps[fs_step_name].get_support()
 
         msk2 = np.logical_and(best_estimator.named_steps["variance"].get_support(), msk1)
 
