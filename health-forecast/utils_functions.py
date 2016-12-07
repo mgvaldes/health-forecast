@@ -828,19 +828,20 @@ def scale_values(X):
 
 if __name__ == '__main__':
     disease = "lung_cancer"
-    chromosome = "chr12"
+    chromosome = "chr1"
 
-    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
-    dataset_type = "genomic"
-    sampling_timing = "sampling_before_fs"
+    main_path = '/home/gvaldes/Documentos/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    dataset_type = "genomic_epidemiological"
+    sampling_timing = "sampling_after_fs"
     sampling_type = "up_sample"
     fs_type = ("embedded", "rlr_l1")
     classifier_type = "knn"
 
     # feature_metrics(main_path, dataset_type, sampling_type, sampling_timing, fs_type[1], classifier_type)
 
-    best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
-                         sampling_timing + '/' + sampling_type + '/' + dataset_type + '/' + classifier_type + '_results.pkl'
+    best_estimator_dir = os.getcwd() + '/fs/' + disease + '/' + chromosome + '/' + fs_type[0] + '/' + fs_type[1] + \
+                         '/classifiers/' + classifier_type + '/' + sampling_timing + '/' + sampling_type + '/' + \
+                         dataset_type + '/' + classifier_type + '_results.pkl'
 
     # results = load_object(best_estimator_dir)
     #
@@ -855,10 +856,16 @@ if __name__ == '__main__':
 
     results = load_object(best_estimator_dir)
 
-    raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_test.csv', delimiter=',')
+    raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw_test.csv', delimiter=',')
     raw_test_data = raw_test_data[1:, :]
 
     y_test = raw_test_data[:, 0]
+    X_test = raw_test_data[:, 1:]
+
+    y_pred = results["best_estimator"].predict(X_test)
+
+    print(y_test)
+    print(y_pred)
 
     plot_prob_vs_frequency(results['y_prob'], y_test)
     # plot_prob_vs_frequency(results['y_prob'])

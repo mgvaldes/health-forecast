@@ -7,7 +7,18 @@ import numpy as np
 command = 'Rscript'
 path_to_script = os.getcwd() + '/retrieve_genes_from_snps.R'
 
-relevant_snps = np.genfromtxt(os.getcwd() + '/genomic_epidemiological_best_model_stability_10_features.csv', delimiter=',', dtype='S120')
+sampling_timing = "sampling_after_fs"
+sampling_type = "up_sample"
+dataset_type = "genomic_epidemiological"
+fs_type = ("embedded", "rlr_l1")
+classifier_type = "knn"
+disease = "lung_cancer"
+chromosome = "chr1"
+
+relevant_snps = np.genfromtxt(os.getcwd() + '/fs/' + disease + '/' + chromosome + '/' + fs_type[0] + '/' +
+                              fs_type[1] + '/classifiers/' + classifier_type + '/' + sampling_timing + '/' +
+                              sampling_type + '/' + dataset_type + '/genomic_epidemiological_best_model_stability_10_features.csv', delimiter=',', dtype='S120')
+
 relevant_snps = relevant_snps[1:]
 relevant_snps = relevant_snps[:, 0]
 
