@@ -12,7 +12,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import Imputer
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import VarianceThreshold
-from sklearn.utils import resample
+from sklearn.utils import resample, shuffle
 
 
 def save_object(obj, filename):
@@ -578,10 +578,13 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
         print("Classifier: ", classifier_step_name)
         print()
 
-        experiment_data = resample(raw_train_data, replace=True, random_state=i)
+        # experiment_data = resample(raw_train_data, replace=True, random_state=i)
+        #
+        # X_train = experiment_data[:, 1:]
+        # y_train = experiment_data[:, 0]
 
-        X_train = experiment_data[:, 1:]
-        y_train = experiment_data[:, 0]
+        X_train, y_train = shuffle(raw_train_data[:, 1:], raw_train_data[:, 0], random_state=i,
+                                                             n_samples=int(np.round(0.8 * raw_train_data.shape[0])))
 
         print("Re-fitting best estimator...")
         print()
