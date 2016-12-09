@@ -1,3 +1,4 @@
+from pandas.algos import float16
 from sklearn.externals import joblib
 import pickle
 import numpy as np
@@ -10,7 +11,8 @@ from plot_functions import plot_confusion_matrix, plot_roc, plot_metrics_vs_data
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import Imputer
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils import resample
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.utils import resample, shuffle
 
 
 def save_object(obj, filename):
@@ -576,10 +578,13 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
         print("Classifier: ", classifier_step_name)
         print()
 
-        experiment_data = resample(raw_train_data, replace=True, random_state=i)
+        # experiment_data = resample(raw_train_data, replace=True, random_state=i)
+        #
+        # X_train = experiment_data[:, 1:]
+        # y_train = experiment_data[:, 0]
 
-        X_train = experiment_data[:, 1:]
-        y_train = experiment_data[:, 0]
+        X_train, y_train = shuffle(raw_train_data[:, 1:], raw_train_data[:, 0], random_state=i,
+                                                             n_samples=int(np.round(0.8 * raw_train_data.shape[0])))
 
         print("Re-fitting best estimator...")
         print()
@@ -663,7 +668,7 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
         if classifier_step_name != "knn" or (classifier_step_name == "knn" and fs_step_name == "rlr_l1"):
             header += list([mean_name, abs_mean_name, scaled_name])
 
-        w.writerow(header)
+        w.writerow(list(header))
         w.writerows(features_info)
 
 
@@ -721,7 +726,7 @@ def performance_vs_data(main_path, dataset_type, best_estimator):
     plot_metrics_vs_data(cv_scores, test_scores)
 
 
-def iter_loadtxt(filename, delimiter=',', skiprows=1, dtype=float):
+def iter_loadtxt(filename, delimiter=',', skiprows=1, dtype=np.float32):
     def iter_func():
         with open(filename, 'r') as infile:
             for _ in range(skiprows):
@@ -826,23 +831,37 @@ def scale_values(X):
 #     return np.column_stack((new_X, X[:, col_splitter:X.shape[1]])), y
 
 
-if __name__ == '__main__':
-    disease = "lung_cancer"
-    chromosome = "chr1"
+def check_variance(X):
+    print("Before:", X.shape)
+    print()
 
-    main_path = '/home/gvaldes/Documentos/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    variance_threshold = VarianceThreshold()
+    new_X = variance_threshold.fit_transform(X)
+
+    print("After:", new_X.shape)
+    print()
+
+
+if __name__ == '__main__':
+    disease = "diabetes"
+    # chromosome = "chr12"
+
+    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/'
     dataset_type = "genomic_epidemiological"
-    sampling_timing = "sampling_after_fs"
-    sampling_type = "up_sample"
-    fs_type = ("embedded", "rlr_l1")
-    classifier_type = "knn"
+    dataset_sub_type = "D2_vs_H"
+    # sampling_timing = "sampling_before_fs"
+    # sampling_type = "up_sample"
+    # fs_type = ("embedded", "rlr_l1")
+    # classifier_type = "knn"
+
+    X = iter_loadtxt(main_path + dataset_type + '/' + dataset_sub_type + '/raw_train.csv')
+    check_variance(X)
 
     # feature_metrics(main_path, dataset_type, sampling_type, sampling_timing, fs_type[1], classifier_type)
 
-    best_estimator_dir = os.getcwd() + '/fs/' + disease + '/' + chromosome + '/' + fs_type[0] + '/' + fs_type[1] + \
-                         '/classifiers/' + classifier_type + '/' + sampling_timing + '/' + sampling_type + '/' + \
-                         dataset_type + '/' + classifier_type + '_results.pkl'
-
+    # best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
+    #                      sampling_timing + '/' + sampling_type + '/' + dataset_type + '/' + classifier_type + '_results.pkl'
     # results = load_object(best_estimator_dir)
     #
     # best_estimator = results['best_estimator']
@@ -854,20 +873,14 @@ if __name__ == '__main__':
     #
     # data = impute_missing_values(main_path)
 
-    results = load_object(best_estimator_dir)
+    # results = load_object(best_estimator_dir)
 
-    raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw_test.csv', delimiter=',')
-    raw_test_data = raw_test_data[1:, :]
-
-    y_test = raw_test_data[:, 0]
-    X_test = raw_test_data[:, 1:]
-
-    y_pred = results["best_estimator"].predict(X_test)
-
-    print(y_test)
-    print(y_pred)
-
-    plot_prob_vs_frequency(results['y_prob'], y_test)
+    # raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw/raw_test.csv', delimiter=',')
+    # raw_test_data = raw_test_data[1:, :]
+    #
+    # y_test = raw_test_data[:, 0]
+    #
+    # plot_prob_vs_frequency(results['y_prob'], y_test)
     # plot_prob_vs_frequency(results['y_prob'])
 
     # print("Loading variable names...")
