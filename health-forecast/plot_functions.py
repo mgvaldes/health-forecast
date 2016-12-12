@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import itertools
+from scipy.interpolate import spline
 
 
 def plot_confusion_matrix(cm, classes, filename, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues, save=True):
@@ -96,12 +97,36 @@ def plot_prob_vs_frequency(y_prob, y_test):
     y_test_and_y_prob = np.zeros((len(y_test), 2))
     y_test_and_y_prob[:, 0] = y_test
     y_test_and_y_prob[:, 1] = y_prob[:, 0]
-    print(y_test_and_y_prob)
+    # print(y_test_and_y_prob)
 
     sorted_by_y_prob_y_test_and_y_prob = y_test_and_y_prob[np.argsort(y_test_and_y_prob[:, 1])[::-1]]
     print(sorted_by_y_prob_y_test_and_y_prob)
 
+    acum_tps = np.zeros(len(y_test))
 
+    for i in range(0, len(y_test)):
+        acum_tps[i] = sum(sorted_by_y_prob_y_test_and_y_prob[:, 0][np.where(sorted_by_y_prob_y_test_and_y_prob[:, 1][0:(i + 1)] >= 0.5)])
+
+    print(acum_tps)
+
+    plt.figure()
+    plt.plot(range(1, len(y_test) + 1), acum_tps, color='red')
+    plt.xlabel('Num. Samples')
+    plt.ylabel('TP')
+    plt.axis('tight')
+    plt.show()
+
+    # plt.figure()
+    #
+    # xnew = np.linspace(0, len(y_test), 30)
+    #
+    # TP_smooth = spline(range(0, len(y_test)), acum_tps, xnew)
+    #
+    # plt.plot(xnew, TP_smooth)
+    # plt.xlabel('Num. Samples')
+    # plt.ylabel('TP')
+    # plt.axis('tight')
+    # plt.show()
 
     # sorted_y_prob = np.sort(y_prob[:, 0])[::-1]
     # print(sorted_y_prob)

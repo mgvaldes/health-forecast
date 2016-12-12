@@ -31,8 +31,8 @@ write.table(data.map, file = "chr12_imputed.map", row.names = FALSE, col.names =
 #/opt/plink-beta-3.38/plink --file chr12_imputed --no-parents --make-bed --out chr12_imputed
 #/opt/plink-beta-3.38/plink --bfile chr12_imputed --snps-only --model --out data --covar IMPPC_lung_progres.txt --covar-name PC1,PC2,PC3,PC4,PC5,PC6,PC7,ECOG,fumador,sex
 
-system("/opt/plink-beta-3.38/plink --bfile chr12_imputed_maf001 --snps-only --allow-no-sex --pheno IMPPC_lung_progres2.txt --pheno-name progres --logistic --covar IMPPC_lung_progres2.txt --covar-name PC1,PC2,PC3,PC4,PC5,PC6,PC7,ECOG,fumador,sex --out genomic_epidemiological")
-system("/opt/plink-beta-3.38/plink --bfile chr12_imputed_maf001 --snps-only --allow-no-sex --pheno IMPPC_lung_progres2.txt --pheno-name progres --logistic --out genomic")
+system("/opt/plink-beta-3.38/plink --bfile chr12_imputed_maf001 --allow-no-sex --pheno IMPPC_lung_progres2.txt --pheno-name progres --logistic --covar IMPPC_lung_progres2.txt --covar-name PC1,PC2,PC3,PC4,PC5,PC6,PC7,ECOG,fumador,sex --out genomic_epidemiological")
+system("/opt/plink-beta-3.38/plink --bfile chr12_imputed_maf001 --allow-no-sex --pheno IMPPC_lung_progres2.txt --pheno-name progres --logistic --out genomic")
 
 ###################################### manhattan plot of SNP's after --model --logistic in plink
 library(qqman)
@@ -42,6 +42,7 @@ library(muStat)
 
 logistic.result <- fread("genomic.assoc.logistic", data.table = TRUE, header = TRUE)
 logistic.result <- fread("genomic_epidemiological.assoc.logistic", data.table = TRUE, header = TRUE)
+
 #logistic.adjusted.result <- fread("data2.assoc.logistic.adjusted", data.table = TRUE, header = TRUE)
 
 #P <- model.result$CHISQ[which(model.result$TEST == "TREND")]
@@ -79,7 +80,7 @@ threshold3 <- -1 * log10(0.01)
 #min.BP <- min(BP)
 #max.BP <- max(BP)
 
-png("genomic_manhattan.png", width=2000, height=1500)
+# png("genomic_manhattan.png", width=2000, height=1500)
 png("genomic_epidemiological_manhattan.png", width=2000, height=1500)
 #manhattan(subset(result, CHR == 12), main = "Manhattan Plot", suggestiveline = F, genomewideline = F, xlim = c(0,10), ylim = c(0,7))
 manhattan(result, main = "Manhattan Plot", suggestiveline = F, genomewideline = F, xlim = c(0,150), ylim = c(0,8))

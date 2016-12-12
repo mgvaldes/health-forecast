@@ -18,7 +18,7 @@ chromosome = "chr12"
 relevant_snps = np.genfromtxt(os.getcwd() + '/fs/' + disease + '/' + chromosome + '/' + fs_type[0] + '/' +
                               fs_type[1] + '/classifiers/' + classifier_type + '/' + sampling_timing + '/' +
                               sampling_type + '/' + dataset_type +
-                              '/genomic_epidemiological_best_model_stability_greater_than_35_snps.csv', delimiter=',', dtype='S120')
+                              '/genomic_epidemiological_best_model_stability_greater_than_45_snps.csv', delimiter=';', dtype='S120')
 relevant_snps = relevant_snps[1:]
 relevant_snps = relevant_snps[:, 0]
 

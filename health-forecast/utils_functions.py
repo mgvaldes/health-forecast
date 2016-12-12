@@ -863,7 +863,6 @@ if __name__ == '__main__':
 
     # best_estimator_dir = os.getcwd() + '/fs/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/' + classifier_type + '/' + \
     #                      sampling_timing + '/' + sampling_type + '/' + dataset_type + '/' + classifier_type + '_results.pkl'
-
     # results = load_object(best_estimator_dir)
     #
     # best_estimator = results['best_estimator']
