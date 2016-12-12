@@ -56,6 +56,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     print()
 
     y_pred = best_estimator.predict(X_test)
+    experiment_results['y_pred'] = y_pred
 
     # print("Predicting y_test with reduced X_test")
     # print()

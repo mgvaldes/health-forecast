@@ -18,8 +18,12 @@ def plot_confusion_matrix(cm, classes, filename, normalize=False, title='Confusi
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         plt.text(j, i, cm[i, j], horizontalalignment="center", color="white" if cm[i, j] > thresh else "black")
     plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+    plt.ylabel('Predicted label')
+    plt.xlabel('True label')
+
+    fig, ax = plt.subplots()
+    ax.xaxis.set_label_position('top')
+
     if save:
         plt.savefig(filename)
     else:
