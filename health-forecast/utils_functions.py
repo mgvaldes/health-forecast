@@ -564,7 +564,7 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
 
     print("Loading variable names...")
     print()
-    with open(main_path + dataset_type + '/' + chromosome + '/raw_train.csv', 'r') as csvfile:
+    with open(main_path + chromosome + '/' + dataset_type + '/raw_train.csv', 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
             variable_names = np.array(list(row))
@@ -578,7 +578,7 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
 
     print("Loading train data...")
     print()
-    raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + chromosome + '/raw_train.csv', delimiter=',')
+    raw_train_data = np.genfromtxt(main_path + chromosome + '/' + dataset_type + '/raw_train.csv', delimiter=',')
     raw_train_data = raw_train_data[1:, :]
 
     for i in range(0, num_experiments):

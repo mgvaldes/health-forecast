@@ -27,7 +27,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     print("Loading variable names...")
     print()
     # with open(main_path + dataset_type + '/' + sampling + '/raw_train.csv', 'r') as csvfile:
-    with open(main_path + dataset_type + '/' + chromosome + '/raw_train.csv', 'r') as csvfile:
+    with open(main_path + chromosome + '/' + dataset_type + '/raw_train.csv', 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
             variable_names = np.array(list(row))
@@ -40,13 +40,13 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     print("Loading experiment data...")
     print()
 
-    raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + chromosome + '/raw_train.csv', delimiter=',')
+    raw_train_data = np.genfromtxt(main_path + chromosome + '/' + dataset_type + '/raw_train.csv', delimiter=',')
     raw_train_data = raw_train_data[1:, :]
 
     X_train = raw_train_data[:, 1:]
     y_train = raw_train_data[:, 0]
 
-    raw_test_data = np.genfromtxt(main_path + dataset_type + '/' + chromosome + '/raw_test.csv', delimiter=',')
+    raw_test_data = np.genfromtxt(main_path + chromosome + '/' + dataset_type + '/raw_test.csv', delimiter=',')
     raw_test_data = raw_test_data[1:, :]
 
     X_test = raw_test_data[:, 1:]
