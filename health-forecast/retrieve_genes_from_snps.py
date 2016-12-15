@@ -50,7 +50,7 @@ for snp in relevant_snps:
 
 with open(os.getcwd() + '/fs/' + disease + '/' + chromosome + '/' + fs_type[0] + '/' +
                               fs_type[1] + '/classifiers/' + classifier_type + '/' + sampling_timing + '/' +
-                              sampling_type + '/' + dataset_type + '/genomic_epidemiological_top_snps_genes.csv', 'w') as f:
+                              sampling_type + '/' + dataset_type + '/genomic_epidemiological_top_snps_genes_hg38.csv', 'w') as f:
     w = csv.writer(f)
     w.writerow(['snps', 'genes'])
     w.writerows(gene_results)

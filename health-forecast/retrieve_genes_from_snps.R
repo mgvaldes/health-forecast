@@ -16,7 +16,9 @@ snp.name <- strsplit(var.name, "_")[[1]][1]
 
 snp.position <- as.numeric(strsplit(var.name, ":")[[1]][2])
 
-snp.data <- data.frame(rs = snp.name, chrom = "chr12", start = snp.position, end = snp.position)
+chr.number <- strsplit(var.name, ":")[[1]][1]
+
+snp.data <- data.frame(rs = snp.name, chrom = paste0("chr", chr.number), start = snp.position, end = snp.position)
 
 snp.related.genes <- runseq2gene(inputfile = snp.data, genome = "hg38", adjacent = FALSE, SNP = TRUE, search_radius = 1000, PromoterStop = FALSE, NearestTwoDirection = TRUE)
 
