@@ -34,7 +34,7 @@ def load_dict(filename):
 
 
 def performance_metrics(experiment_results, best_estimator, fs_step_name, classifier_step_name, X_train, y_train, X_test,
-                        y_test, dataset_type, variable_names, sampling, sampling_timing):
+                        y_test, dataset_type, variable_names, sampling, sampling_timing, chromosome):
     experiment_results['best_estimator'] = best_estimator
 
     cv_score = np.mean(cross_val_score(best_estimator, X_train, y_train, n_jobs=-1, cv=StratifiedKFold(n_splits=5, random_state=789012), scoring='f1_weighted'))
@@ -88,7 +88,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     print()
 
     result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + \
-                        sampling_timing + '/' + '/' + sampling + '/' + dataset_type #+ '/' + dataset_subtype
+                        sampling_timing + '/' + '/' + sampling + '/' + dataset_type + '/' + chromosome
 
     plot_confusion_matrix(classifier_confusion_matrix, classes=["Negative", "Positive"],
                           filename=result_files_path + '/confusion_matrix.png')
@@ -542,11 +542,21 @@ def manual_performance_metrics(experiment_results, feature_selector, best_estima
 #         w.writerows(features_info)
 
 #
-def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
+def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name, chromosome):
+    print("##### Experiment Info #####")
+    print("Chromosome:", chromosome)
+    print("Dataset type:", dataset_type)
+    print("Sampling:", sampling)
+    print("Sampling timing:", sampling_timing)
+    print("FS:", fs_step_name)
+    print("Classifier:", classifier_step_name)
+    print()
+
     print("Loading best estimator...")
     print()
 
-    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + sampling_timing + '/' + sampling + '/' + dataset_type
+    result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + \
+                        sampling_timing + '/' + sampling + '/' + dataset_type + '/' + chromosome
 
     experiment_results = load_object(result_files_path + '/' + classifier_step_name + '_results.pkl')
 
@@ -554,7 +564,7 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
 
     print("Loading variable names...")
     print()
-    with open(main_path + dataset_type + '/raw_train.csv', 'r') as csvfile:
+    with open(main_path + dataset_type + '/' + chromosome + '/raw_train.csv', 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
             variable_names = np.array(list(row))
@@ -568,15 +578,11 @@ def feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_
 
     print("Loading train data...")
     print()
-    raw_train_data = np.genfromtxt(main_path + dataset_type + '/raw_train.csv', delimiter=',')
+    raw_train_data = np.genfromtxt(main_path + dataset_type + '/' + chromosome + '/raw_train.csv', delimiter=',')
     raw_train_data = raw_train_data[1:, :]
 
     for i in range(0, num_experiments):
-        print("##### Experiment " + str(i) + " Info #####")
-        print("Dataset type: ", dataset_type)
-        print("Sampling: ", sampling)
-        print("FS: ", fs_step_name)
-        print("Classifier: ", classifier_step_name)
+        print("##### Experiment", str(i), "#####")
         print()
 
         # experiment_data = resample(raw_train_data, replace=True, random_state=i)
