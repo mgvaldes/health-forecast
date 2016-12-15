@@ -90,7 +90,7 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     result_files_path = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name + '/' + \
                         sampling_timing + '/' + '/' + sampling + '/' + dataset_type #+ '/' + dataset_subtype
 
-    plot_confusion_matrix(classifier_confusion_matrix, classes=["Positive", "Negative"],
+    plot_confusion_matrix(classifier_confusion_matrix, classes=["Negative", "Positive"],
                           filename=result_files_path + '/confusion_matrix.png')
 
     classifier_precision_recall_fscore_support = precision_recall_fscore_support(y_test, y_pred)
@@ -174,18 +174,18 @@ def performance_metrics(experiment_results, best_estimator, fs_step_name, classi
     print(pos_auc)
     print()
 
-    fnr, tnr, thresholds = roc_curve(y_test, y_prob[:, 1], pos_label=1)
-    neg_auc = auc(fnr, tnr)
-    experiment_results['fnr'] = fnr
-    experiment_results['tnr'] = tnr
-    experiment_results['neg_auc'] = neg_auc
-
-    plot_roc(fnr, tnr, neg_auc, "Negative ROC", filename=result_files_path + '/neg_roc.png')
-
-    print("Negative AUC:")
-    print()
-    print(neg_auc)
-    print()
+    # fnr, tnr, thresholds = roc_curve(y_test, y_prob[:, 1], pos_label=1)
+    # neg_auc = auc(fnr, tnr)
+    # experiment_results['fnr'] = fnr
+    # experiment_results['tnr'] = tnr
+    # experiment_results['neg_auc'] = neg_auc
+    #
+    # plot_roc(fnr, tnr, neg_auc, "Negative ROC", filename=result_files_path + '/neg_roc.png')
+    #
+    # print("Negative AUC:")
+    # print()
+    # print(neg_auc)
+    # print()
 
     msk1 = np.repeat(False, len(variable_names))
     msk1[best_estimator.named_steps["variance"].get_support()] = \

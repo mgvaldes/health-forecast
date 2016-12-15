@@ -21,8 +21,8 @@ def plot_confusion_matrix(cm, classes, filename, normalize=False, title='Confusi
     plt.ylabel('Predicted label')
     plt.xlabel('True label')
 
-    fig, ax = plt.subplots()
-    ax.xaxis.set_label_position('top')
+    # fig, ax = plt.subplots()
+    # ax.xaxis.set_label_position('top')
 
     if save:
         plt.savefig(filename)
