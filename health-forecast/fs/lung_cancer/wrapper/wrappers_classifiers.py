@@ -15,7 +15,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler, SMOTE
 
 
-def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
+def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name, chromosome):
     print("##### Experiment Info #####")
     print("Chromosome:", chromosome)
     print("Dataset type:", dataset_type)
@@ -143,8 +143,8 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 if __name__ == '__main__':
     disease = "lung_cancer"
 
-    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
-    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/'
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/'
+    # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/'
 
     sampling_timings = ["sampling_after_fs"]
     sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
