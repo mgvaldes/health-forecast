@@ -54,7 +54,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     pipe = Pipeline([("variance", VarianceThreshold())])
 
     if fs_step_name == "rfe_lr":
-        lr = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=8)
+        lr = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
 
         wrapper = RFE(lr, n_features_to_select=2000, step=0.25)
 
@@ -105,7 +105,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     print("Performing gridsearch...")
     print()
 
-    pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=8, scoring='f1_weighted',
+    pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1, scoring='f1_weighted',
                                    cv=StratifiedKFold(n_splits=5, random_state=123456), verbose=10)
     pipe_gridsearch.fit(X_train, y_train)
 
