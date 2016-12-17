@@ -147,7 +147,7 @@ if __name__ == '__main__':
     # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/'
 
     sampling_timings = ["sampling_after_fs"]
-    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    sampling_types = ["down_sample", "up_sample", "smote_sample"]
     # sampling_types = ["up_sample"]
     dataset_types = ["genomic_epidemiological"]
     fs_step_names = ["rfe_lr"]
