@@ -15,7 +15,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler, SMOTE
 
 
-def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name):
+def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name, chromosome):
     print("##### Experiment Info #####")
     print("Chromosome:", chromosome)
     print("Dataset type:", dataset_type)
@@ -54,7 +54,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     pipe = Pipeline([("variance", VarianceThreshold())])
 
     if fs_step_name == "rfe_lr":
-        lr = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=8)
+        lr = LogisticRegression(random_state=123456, class_weight="balanced", penalty='l1', dual=False, n_jobs=-1)
 
         wrapper = RFE(lr, n_features_to_select=2000, step=0.25)
 
@@ -105,7 +105,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     print("Performing gridsearch...")
     print()
 
-    pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=8, scoring='f1_weighted',
+    pipe_gridsearch = GridSearchCV(pipe, param_grid=param_grid, n_jobs=-1, scoring='f1_weighted',
                                    cv=StratifiedKFold(n_splits=5, random_state=123456), verbose=10)
     pipe_gridsearch.fit(X_train, y_train)
 
@@ -143,15 +143,15 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
 if __name__ == '__main__':
     disease = "lung_cancer"
 
-    # main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/' + chromosome + '/'
-    main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/'
+    main_path = '/home/mgvaldes/devel/MIRI/master-thesis/health-forecast-project/health-forecast/datasets/' + disease + '/'
+    # main_path = '/home/aegle/health-forecast-project/health-forecast/datasets/' + disease + '/'
 
     sampling_timings = ["sampling_after_fs"]
-    sampling_types = ["raw", "down_sample", "up_sample", "smote_sample"]
+    sampling_types = ["smote_sample"]
     # sampling_types = ["up_sample"]
     dataset_types = ["genomic_epidemiological"]
     fs_step_names = ["rfe_lr"]
-    classifier_step_names = ["linear_svm", "rf", "knn"]
+    classifier_step_names = ["knn"]
 
     for fs_step_name in fs_step_names:
         fs_dir = os.getcwd() + '/' + fs_step_name
