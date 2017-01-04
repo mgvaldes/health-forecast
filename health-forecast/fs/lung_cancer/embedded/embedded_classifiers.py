@@ -134,7 +134,7 @@ def general_performance(main_path, dataset_type, sampling, sampling_timing, fs_s
     print(pipe_gridsearch.best_params_)
     print()
 
-    raw_test_data = np.genfromtxt(main_path + dataset_type + '/raw_test.csv', delimiter=',')
+    raw_test_data = np.genfromtxt(main_path + chromosome + '/' + dataset_type + '/raw_test.csv', delimiter=',')
     raw_test_data = raw_test_data[1:, :]
 
     X_test = raw_test_data[:, 1:]
