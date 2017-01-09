@@ -1,6 +1,6 @@
 library(data.table)
 
-raw.file <- fread("chr1_imputed_maf001.raw", data.table = FALSE, header = TRUE)
+raw.file <- fread("chr12_imputed_maf001.raw", data.table = FALSE, header = TRUE)
 raw.file <- raw.file[, 7:ncol(raw.file)]
 
 pheno.data <- fread("IMPPC_lung_progres.txt", header = TRUE, data.table = FALSE)

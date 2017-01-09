@@ -182,7 +182,7 @@ if __name__ == '__main__':
                         if not os.path.exists(dataset_dir):
                             os.makedirs(dataset_dir)
 
-                        # general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
+                        general_performance(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
                         feature_metrics(main_path, dataset_type, sampling, sampling_timing, fs_step_name, classifier_step_name)
 
 # import numpy as np
