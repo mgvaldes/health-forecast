@@ -1,4 +1,3 @@
-from pandas.algos import float16
 from sklearn.externals import joblib
 import pickle
 import numpy as np
