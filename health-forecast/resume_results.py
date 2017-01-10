@@ -12,7 +12,7 @@ def read_results(filename):
     results_tup = results_tup + (results['cv_score'],)
     results_tup = results_tup + (results['train_score'],)
     results_tup = results_tup + (results['f1'], )
-    results_tup = results_tup + (results['neg_auc'],)
+    results_tup = results_tup + (results['pos_auc'],)
     results_tup = results_tup + (results['precision'],)
     results_tup = results_tup + (results['recall'],)
     results_tup = results_tup + (results['accuracy'],)
@@ -36,36 +36,38 @@ if __name__ == '__main__':
     fs_types = [("filter", "anova"), ("wrapper", "rfe_lr"), ("embedded", "rlr_l1")]
     classifier_types = ["linear_svm", "rf", "knn"]
     disease = "lung_cancer"
-    chromosome = "chr12"
 
-    for dataset_type in dataset_types:
-        resume_results = np.zeros(0, dtype=('a50, a50, a50, a50, float64, float64, float64, float64, float64, float64, float64, '
-                                            'float64, float64, float64, float64, float64, float64'))
+    for i in range(2, 23):
+        chromosome = "chr" + str(i)
 
-        for fs_type in fs_types:
-            fs_dir = os.getcwd() + '/fs/' + disease + '/' + chromosome + '/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/'
+        for dataset_type in dataset_types:
+            resume_results = np.zeros(0, dtype=('a50, a50, a50, a50, float64, float64, float64, float64, float64, float64, float64, '
+                                                'float64, float64, float64, float64, float64, float64'))
 
-            for classifier_type in classifier_types:
-                classifier_dir = fs_dir + classifier_type + '/'
+            for fs_type in fs_types:
+                fs_dir = os.getcwd() + '/fs/' + disease + '/' + fs_type[0] + '/' + fs_type[1] + '/classifiers/'
 
-                for sampling_timing in sampling_timings:
-                    sampling_timing_dir = classifier_dir + sampling_timing + '/'
+                for classifier_type in classifier_types:
+                    classifier_dir = fs_dir + classifier_type + '/'
 
-                    for sampling_type in sampling_types:
-                        sampling_dir = sampling_timing_dir + sampling_type + '/'
+                    for sampling_timing in sampling_timings:
+                        sampling_timing_dir = classifier_dir + sampling_timing + '/'
 
-                        dataset_dir = sampling_dir + dataset_type + '/' + classifier_type + '_results.pkl'
+                        for sampling_type in sampling_types:
+                            sampling_dir = sampling_timing_dir + sampling_type + '/'
 
-                        resume_results = np.append(resume_results,
-                                                   np.array([(sampling_type, fs_type[0] + ': ' + fs_type[1],
-                                                              classifier_type, dataset_type) + read_results(
-                                                       dataset_dir)],
-                                                            dtype=resume_results.dtype))
+                            dataset_dir = sampling_dir + dataset_type + '/' + chromosome + '/' + classifier_type + '_results.pkl'
 
-        with open(os.getcwd() + '/fs/' + disease + '/' + chromosome + '/' + dataset_type + '_resumed_results.csv', 'w') as f:
-            w = csv.writer(f)
-            w.writerow(['sampling', 'fs', 'classifier', 'data', 'cv f1', 'train f1', 'test f1', 'test auc', 'test precision', 'test recall', 'test accuracy', 'test precision (1)', 'test recall (1)', 'test f1 (1)', 'test precision (0)', 'test recall (0)', 'test f1 (0)'])
-            w.writerows(resume_results)
+                            resume_results = np.append(resume_results,
+                                                       np.array([(sampling_type, fs_type[0] + ': ' + fs_type[1],
+                                                                  classifier_type, dataset_type) + read_results(
+                                                           dataset_dir)],
+                                                                dtype=resume_results.dtype))
+
+            with open(os.getcwd() + '/fs/' + disease + '/' + chromosome + '_' + dataset_type + '_resumed_results.csv', 'w') as f:
+                w = csv.writer(f)
+                w.writerow(['sampling', 'fs', 'classifier', 'data', 'cv f1', 'train f1', 'test f1', 'test auc', 'test precision', 'test recall', 'test accuracy', 'test precision (1)', 'test recall (1)', 'test f1 (1)', 'test precision (0)', 'test recall (0)', 'test f1 (0)'])
+                w.writerows(resume_results)
 
     # classifier_dir = os.getcwd() + '/' + fs_step_name + '/classifiers/' + classifier_step_name
     #

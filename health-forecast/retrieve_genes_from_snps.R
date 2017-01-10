@@ -1,4 +1,4 @@
-setwd("~/devel/MIRI/master-thesis/health-forecast-project/health-forecast")
+# setwd("~/devel/MIRI/master-thesis/health-forecast-project/health-forecast")
 
 # setRepositories()
 # Select option 2

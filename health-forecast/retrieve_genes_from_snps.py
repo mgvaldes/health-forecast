@@ -8,16 +8,16 @@ command = 'Rscript'
 path_to_script = os.getcwd() + '/retrieve_genes_from_snps.R'
 
 sampling_timing = "sampling_after_fs"
-sampling_type = "down_sample"
+sampling_type = "raw"
 dataset_type = "genomic_epidemiological"
 fs_type = ("embedded", "rlr_l1")
-classifier_type = "rf"
+classifier_type = "knn"
 disease = "lung_cancer"
-chromosome = "chr12"
+chromosome = "chr1"
 
-relevant_snps = np.genfromtxt(os.getcwd() + '/fs/' + disease + '/' + chromosome + '/' + fs_type[0] + '/' +
+relevant_snps = np.genfromtxt(os.getcwd() + '/fs/' + disease + '/' + fs_type[0] + '/' +
                               fs_type[1] + '/classifiers/' + classifier_type + '/' + sampling_timing + '/' +
-                              sampling_type + '/' + dataset_type +
+                              sampling_type + '/' + dataset_type + '/' + chromosome + '/' +
                               '/genomic_epidemiological_best_model_stability_greater_than_45_snps.csv', delimiter=';', dtype='S120')
 relevant_snps = relevant_snps[1:]
 relevant_snps = relevant_snps[:, 0]
@@ -48,9 +48,9 @@ for snp in relevant_snps:
 
     gene_results = np.append(gene_results, np.array([(snp, genes_related)], dtype=gene_results.dtype))
 
-with open(os.getcwd() + '/fs/' + disease + '/' + chromosome + '/' + fs_type[0] + '/' +
-                              fs_type[1] + '/classifiers/' + classifier_type + '/' + sampling_timing + '/' +
-                              sampling_type + '/' + dataset_type + '/genomic_epidemiological_top_snps_genes_hg38.csv', 'w') as f:
+with open(os.getcwd() + '/fs/' + disease + '/' + fs_type[0] + '/' +
+          fs_type[1] + '/classifiers/' + classifier_type + '/' + sampling_timing + '/' +
+          sampling_type + '/' + dataset_type + '/' + chromosome + '/' + '/genomic_epidemiological_top_snps_genes_hg38.csv', 'w') as f:
     w = csv.writer(f)
     w.writerow(['snps', 'genes'])
     w.writerows(gene_results)
