@@ -8,12 +8,12 @@ command = 'Rscript'
 path_to_script = os.getcwd() + '/retrieve_genes_from_snps.R'
 
 sampling_timing = "sampling_after_fs"
-sampling_type = "raw"
+sampling_type = "smote_sample"
 dataset_type = "genomic_epidemiological"
 fs_type = ("embedded", "rlr_l1")
-classifier_type = "knn"
+classifier_type = "rf"
 disease = "lung_cancer"
-chromosome = "chr1"
+chromosome = "chr2"
 
 relevant_snps = np.genfromtxt(os.getcwd() + '/fs/' + disease + '/' + fs_type[0] + '/' +
                               fs_type[1] + '/classifiers/' + classifier_type + '/' + sampling_timing + '/' +
